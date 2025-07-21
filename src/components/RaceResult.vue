@@ -1,114 +1,64 @@
 <template>
   <div class="race-results">
-    <div class="header">
-      <h2>Race Results</h2>
-      <div v-if="allResults.length > 0" class="results-summary">
-        {{ allResults.length }} / {{ totalRounds }} races completed
+    <div class="results-header">
+      <h3>🏆 Race Results</h3>
+      <div v-if="allResults.length > 0" class="results-count">
+        {{ allResults.length }}/{{ totalRounds }} completed
       </div>
     </div>
 
     <div v-if="allResults.length > 0" class="results-container">
-      <div v-for="(results, raceIndex) in allResults" :key="raceIndex" class="race-result">
-        <div class="result-header">
-          <h3>Round {{ raceIndex + 1 }} Results</h3>
-          <span class="distance">{{ getRaceDistance(raceIndex) }}m</span>
-        </div>
+      <div class="results-grid">
+        <div v-for="(results, raceIndex) in allResults" :key="raceIndex" class="race-result-card">
+          <div class="card-header">
+            <span class="round-badge">R{{ raceIndex + 1 }}</span>
+            <span class="distance">{{ getRaceDistance(raceIndex) }}m</span>
+          </div>
 
-        <div class="podium">
+          <div class="podium-mini">
+            <div v-for="result in results.slice(0, 3)" :key="result.position" class="podium-item">
+              <div class="position-medal">{{ getMedal(result.position) }}</div>
+              <div class="horse-mini" :style="{ backgroundColor: result.horse.color }"></div>
+              <div class="result-info">
+                <div class="horse-name-mini">{{ result.horse.name }}</div>
+                <div class="time-mini">{{ result.time.toFixed(2) }}s</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Stats -->
+      <div class="quick-stats">
+        <div class="stat">
+          <span class="stat-value">{{ getWinningHorses().length }}</span>
+          <span class="stat-label">Different Winners</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">{{ getMostSuccessfulHorse()?.wins || 0 }}</span>
+          <span class="stat-label">Most Wins</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">{{ getAverageTime() }}s</span>
+          <span class="stat-label">Avg Winner Time</span>
+        </div>
+        <div v-if="getMostSuccessfulHorse()" class="champion-mini">
           <div
-            v-for="result in results.slice(0, 3)"
-            :key="result.position"
-            class="podium-position"
-            :class="`position-${result.position}`"
-          >
-            <div class="medal">{{ getMedal(result.position) }}</div>
-            <div class="horse-avatar" :style="{ backgroundColor: result.horse.color }">🐎</div>
-            <div class="horse-info">
-              <div class="horse-name">{{ result.horse.name }}</div>
-              <div class="horse-time">{{ result.time.toFixed(2) }}s</div>
-              <div class="horse-condition">Condition: {{ result.horse.condition }}</div>
-            </div>
+            class="champion-color"
+            :style="{ backgroundColor: getMostSuccessfulHorse()?.horse.color }"
+          ></div>
+          <div class="champion-info-mini">
+            <div class="champion-name-mini">{{ getMostSuccessfulHorse()?.horse.name }}</div>
+            <div class="champion-wins">{{ getMostSuccessfulHorse()?.wins }} wins</div>
           </div>
-        </div>
-
-        <div class="full-results">
-          <h4>Full Results:</h4>
-          <div class="results-table">
-            <div class="table-header">
-              <span>Pos</span>
-              <span>Horse</span>
-              <span>Time</span>
-              <span>Condition</span>
-            </div>
-            <div
-              v-for="result in results"
-              :key="result.position"
-              class="table-row"
-              :class="{ 'top-three': result.position <= 3 }"
-            >
-              <span class="position">{{ result.position }}</span>
-              <span class="horse-cell">
-                <span
-                  class="horse-color-dot"
-                  :style="{ backgroundColor: result.horse.color }"
-                ></span>
-                {{ result.horse.name }}
-              </span>
-              <span class="time">{{ result.time.toFixed(2) }}s</span>
-              <span class="condition">{{ result.horse.condition }}/100</span>
-            </div>
-          </div>
+          <div class="champion-crown">👑</div>
         </div>
       </div>
     </div>
 
     <div v-else class="no-results">
-      <div class="empty-state">
-        <div class="empty-icon">🏆</div>
-        <h3>No Race Results Yet</h3>
-        <p>Complete some races to see results here!</p>
-      </div>
-    </div>
-
-    <!-- Overall Statistics -->
-    <div v-if="allResults.length > 0" class="statistics">
-      <h3>Statistics</h3>
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-number">{{ allResults.length }}</div>
-          <div class="stat-label">Races Completed</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number">{{ getWinningHorses().length }}</div>
-          <div class="stat-label">Different Winners</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number">{{ getMostSuccessfulHorse()?.wins || 0 }}</div>
-          <div class="stat-label">Most Wins</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number">{{ getAverageTime() }}s</div>
-          <div class="stat-label">Avg. Winner Time</div>
-        </div>
-      </div>
-
-      <div v-if="getMostSuccessfulHorse()" class="champion">
-        <h4>🏆 Current Champion</h4>
-        <div class="champion-card">
-          <div
-            class="champion-avatar"
-            :style="{ backgroundColor: getMostSuccessfulHorse()?.horse?.color }"
-          >
-            🐎
-          </div>
-          <div class="champion-info">
-            <div class="champion-name">{{ getMostSuccessfulHorse()?.horse?.name }}</div>
-            <div class="champion-stats">
-              {{ getMostSuccessfulHorse()?.wins }} wins out of {{ allResults.length }} races
-            </div>
-          </div>
-        </div>
-      </div>
+      <span class="empty-icon">🏁</span>
+      <span>Race results will appear here after completing races</span>
     </div>
   </div>
 </template>
@@ -116,8 +66,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useStore } from 'vuex'
-import { RACE_DISTANCES } from '../store/types'
-import type { Horse, RaceResult } from '../store/types'
+import { RACE_DISTANCES, type Horse, type RaceResult } from '../store/types'
 
 const store = useStore()
 
@@ -141,14 +90,14 @@ const getMedal = (position: number): string => {
   }
 }
 
-const getWinningHorses = (): Horse[] => {
+const getWinningHorses = () => {
   const winners = allResults.value.map((results: RaceResult[]) => results[0]?.horse).filter(Boolean)
   return [...new Set(winners.map((horse: Horse) => horse.id))].map((id) =>
     winners.find((horse: Horse) => horse.id === id),
   )
 }
 
-const getMostSuccessfulHorse = (): { horse: Horse; wins: number } | null => {
+const getMostSuccessfulHorse = () => {
   if (allResults.value.length === 0) return null
 
   const horseWins: { [key: number]: { horse: Horse; wins: number } } = {}
@@ -186,189 +135,99 @@ const getAverageTime = (): string => {
 <style scoped>
 .race-results {
   padding: 20px;
-  background: #f8f9fa;
-  border-radius: 10px;
+  height: 100%;
 }
 
-.header {
+.results-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
-.header h2 {
+.results-header h3 {
   margin: 0;
   color: #2c3e50;
+  font-size: 16px;
+  font-weight: 600;
 }
 
-.results-summary {
-  background: #3498db;
+.results-count {
+  background: #27ae60;
   color: white;
-  padding: 5px 15px;
-  border-radius: 15px;
-  font-size: 14px;
-  font-weight: bold;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .results-container {
-  display: grid;
+  display: flex;
   gap: 20px;
+  align-items: flex-start;
 }
 
-.race-result {
-  background: white;
-  border-radius: 10px;
-  padding: 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.results-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  max-height: 240px;
+  overflow-y: auto;
 }
 
-.result-header {
+.race-result-card {
+  background: #fafbfc;
+  border: 1px solid #e1e8ed;
+  border-radius: 8px;
+  padding: 12px;
+  transition: transform 0.2s;
+}
+
+.race-result-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #ecf0f1;
-}
-
-.result-header h3 {
-  margin: 0;
-  color: #2c3e50;
-}
-
-.distance {
-  background: #e74c3c;
-  color: white;
-  padding: 5px 10px;
-  border-radius: 15px;
-  font-size: 12px;
-  font-weight: bold;
-}
-
-.podium {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
-  margin-bottom: 25px;
-}
-
-.podium-position {
-  text-align: center;
-  padding: 15px;
-  border-radius: 8px;
-  position: relative;
-}
-
-.position-1 {
-  background: linear-gradient(135deg, #ffd700, #ffed4e);
-  border: 2px solid #f1c40f;
-}
-
-.position-2 {
-  background: linear-gradient(135deg, #c0c0c0, #e8e8e8);
-  border: 2px solid #95a5a6;
-}
-
-.position-3 {
-  background: linear-gradient(135deg, #cd7f32, #d4a574);
-  border: 2px solid #d35400;
-}
-
-.medal {
-  font-size: 24px;
   margin-bottom: 10px;
 }
 
-.horse-avatar {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  margin: 0 auto 10px auto;
-  border: 3px solid white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.horse-info {
-  color: #2c3e50;
-}
-
-.horse-name {
-  font-weight: bold;
-  font-size: 16px;
-  margin-bottom: 5px;
-}
-
-.horse-time {
-  font-size: 14px;
-  font-weight: bold;
-  color: #e74c3c;
-}
-
-.horse-condition {
-  font-size: 12px;
-  color: #7f8c8d;
-}
-
-.full-results {
-  margin-top: 20px;
-}
-
-.full-results h4 {
-  margin: 0 0 15px 0;
-  color: #2c3e50;
-}
-
-.results-table {
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid #ecf0f1;
-}
-
-.table-header {
-  display: grid;
-  grid-template-columns: 60px 1fr 100px 100px;
-  background: #34495e;
+.round-badge {
+  background: #3498db;
   color: white;
-  font-weight: bold;
-  padding: 12px;
-  gap: 15px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
 }
 
-.table-row {
-  display: grid;
-  grid-template-columns: 60px 1fr 100px 100px;
-  padding: 10px 12px;
-  gap: 15px;
-  border-bottom: 1px solid #ecf0f1;
-  align-items: center;
+.distance {
+  font-size: 11px;
+  color: #7f8c8d;
+  font-weight: 600;
 }
 
-.table-row:last-child {
-  border-bottom: none;
+.podium-mini {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.table-row.top-three {
-  background-color: #f8f9fa;
-  font-weight: bold;
-}
-
-.position {
-  text-align: center;
-  font-weight: bold;
-}
-
-.horse-cell {
+.podium-item {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.horse-color-dot {
+.position-medal {
+  font-size: 14px;
+}
+
+.horse-mini {
   width: 12px;
   height: 12px;
   border-radius: 50%;
@@ -376,137 +235,107 @@ const getAverageTime = (): string => {
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
 }
 
-.time {
-  text-align: center;
-  font-weight: bold;
-  color: #e74c3c;
+.result-info {
+  flex: 1;
+  min-width: 0;
 }
 
-.condition {
-  text-align: center;
+.horse-name-mini {
+  font-size: 11px;
+  font-weight: 600;
+  color: #2c3e50;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.time-mini {
+  font-size: 10px;
+  color: #e74c3c;
+  font-weight: 600;
+}
+
+.quick-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 200px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e1e8ed;
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #3498db;
+}
+
+.stat-label {
+  font-size: 10px;
   color: #7f8c8d;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.champion-mini {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  border-radius: 8px;
+  color: white;
+}
+
+.champion-color {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.champion-info-mini {
+  flex: 1;
+  min-width: 0;
+}
+
+.champion-name-mini {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.champion-wins {
+  font-size: 10px;
+  opacity: 0.9;
+}
+
+.champion-crown {
+  font-size: 16px;
 }
 
 .no-results {
   display: flex;
-  justify-content: center;
   align-items: center;
-  min-height: 300px;
-}
-
-.empty-state {
-  text-align: center;
+  justify-content: center;
+  gap: 10px;
+  height: 100px;
   color: #7f8c8d;
+  font-size: 14px;
 }
 
 .empty-icon {
-  font-size: 64px;
-  margin-bottom: 20px;
-}
-
-.empty-state h3 {
-  margin: 0 0 10px 0;
-  color: #2c3e50;
-}
-
-.empty-state p {
-  margin: 0;
-}
-
-.statistics {
-  background: white;
-  border-radius: 10px;
-  padding: 20px;
-  margin-top: 20px;
-}
-
-.statistics h3 {
-  margin: 0 0 20px 0;
-  color: #2c3e50;
-  text-align: center;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 15px;
-  margin-bottom: 20px;
-}
-
-.stat-card {
-  background: #f8f9fa;
-  padding: 20px;
-  border-radius: 8px;
-  text-align: center;
-  border: 2px solid #ecf0f1;
-  transition: transform 0.2s;
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-}
-
-.stat-number {
-  font-size: 32px;
-  font-weight: bold;
-  color: #3498db;
-  margin-bottom: 5px;
-}
-
-.stat-label {
-  font-size: 12px;
-  color: #7f8c8d;
-  text-transform: uppercase;
-  font-weight: bold;
-}
-
-.champion {
-  text-align: center;
-  padding-top: 20px;
-  border-top: 2px solid #ecf0f1;
-}
-
-.champion h4 {
-  margin: 0 0 15px 0;
-  color: #f39c12;
-}
-
-.champion-card {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 15px;
-  background: linear-gradient(135deg, #ffd700, #ffed4e);
-  padding: 20px;
-  border-radius: 10px;
-  border: 2px solid #f1c40f;
-}
-
-.champion-avatar {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 30px;
-  border: 3px solid white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.champion-info {
-  text-align: left;
-}
-
-.champion-name {
-  font-size: 18px;
-  font-weight: bold;
-  color: #2c3e50;
-  margin-bottom: 5px;
-}
-
-.champion-stats {
-  font-size: 14px;
-  color: #7f8c8d;
+  font-size: 24px;
 }
 </style>

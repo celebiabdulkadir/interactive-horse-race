@@ -1,28 +1,26 @@
 <template>
   <div class="race-track">
-    <div class="header">
-      <h2>Race Track</h2>
+    <div class="track-header">
+      <div class="race-info">
+        <h2 v-if="currentRace">Round {{ currentRace.round }} - {{ currentRace.distance }}m</h2>
+        <h2 v-else>Race Track</h2>
+        <div v-if="currentRace" class="race-status">
+          <span class="status" :class="currentRace.status">
+            {{ currentRace.status.toUpperCase() }}
+          </span>
+        </div>
+      </div>
+
       <div class="controls">
-        <button @click="startRace" class="btn btn-success" :disabled="!canStartRace">
+        <button @click="startRace" class="btn btn-race" :disabled="!canStartRace">
           {{ isRacing ? 'Racing...' : 'Start Race' }}
         </button>
 
-        <button v-if="canMoveToNextRound" @click="nextRound" class="btn btn-primary">
+        <button v-if="canMoveToNextRound" @click="nextRound" class="btn btn-next">
           Next Round
         </button>
 
-        <button v-if="isAllRacesFinished" @click="resetAll" class="btn btn-secondary">
-          Reset All
-        </button>
-      </div>
-    </div>
-
-    <div v-if="currentRace" class="race-info">
-      <h3>Round {{ currentRace.round }} - {{ currentRace.distance }}m</h3>
-      <div class="race-status">
-        <span class="status" :class="currentRace.status">
-          {{ currentRace.status.toUpperCase() }}
-        </span>
+        <button v-if="isAllRacesFinished" @click="resetAll" class="btn btn-reset">Reset All</button>
       </div>
     </div>
 
@@ -33,27 +31,35 @@
           v-for="(horse, index) in currentRace.horses"
           :key="horse.id"
           class="lane"
-          :style="{ top: `${index * 50 + 20}px` }"
+          :style="{ top: `${index * 45 + 10}px` }"
         >
-          <div class="lane-number">{{ index + 1 }}</div>
+          <div class="lane-info">
+            <div class="lane-number">{{ index + 1 }}</div>
+            <div class="horse-name">{{ horse.name }}</div>
+          </div>
           <div
             class="horse"
             :style="{
-              left: `${(horse.position / currentRace.distance) * 100}%`,
+              left: `${Math.min(95, (horse.position / currentRace.distance) * 95)}%`,
               backgroundColor: horse.color,
             }"
           >
             🐎
           </div>
-          <div class="horse-name">{{ horse.name }}</div>
         </div>
       </div>
     </div>
 
     <div v-else class="no-race">
-      <p v-if="!isScheduleGenerated">Please generate horses and a race schedule first!</p>
-      <p v-else-if="isAllRacesFinished">🎉 All races completed! Check the results below.</p>
-      <p v-else>Select a race to start!</p>
+      <div class="empty-state">
+        <div class="empty-icon">🏁</div>
+        <h3 v-if="!isScheduleGenerated">Ready to Race!</h3>
+        <h3 v-else-if="isAllRacesFinished">🎉 All Races Completed!</h3>
+        <h3 v-else>Select a Race</h3>
+        <p v-if="!isScheduleGenerated">Generate horses and schedule to start racing</p>
+        <p v-else-if="isAllRacesFinished">Check the results below for winners and statistics</p>
+        <p v-else>Click "Start Race" to begin the current round</p>
+      </div>
     </div>
   </div>
 </template>
@@ -87,84 +93,30 @@ const resetAll = () => {
 <style scoped>
 .race-track {
   padding: 20px;
-  background: #f8f9fa;
-  border-radius: 10px;
-  margin-bottom: 20px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
-.header {
+.track-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-}
-
-.header h2 {
-  margin: 0;
-  color: #2c3e50;
-}
-
-.controls {
-  display: flex;
-  gap: 10px;
-}
-
-.btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.btn-success {
-  background-color: #27ae60;
-  color: white;
-}
-
-.btn-success:hover:not(:disabled) {
-  background-color: #219a52;
-}
-
-.btn-primary {
-  background-color: #3498db;
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: #2980b9;
-}
-
-.btn-secondary {
-  background-color: #7f8c8d;
-  color: white;
-}
-
-.btn-secondary:hover {
-  background-color: #6c757d;
-}
-
-.btn:disabled {
-  background-color: #bdc3c7;
-  cursor: not-allowed;
-}
-
-.race-info {
-  background: white;
   padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  text-align: center;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.race-info h3 {
-  margin: 0 0 10px 0;
+.race-info h2 {
+  margin: 0 0 5px 0;
   color: #2c3e50;
+  font-size: 1.5em;
 }
 
 .race-status .status {
-  padding: 5px 10px;
+  padding: 4px 12px;
   border-radius: 15px;
   font-size: 12px;
   font-weight: bold;
@@ -199,19 +151,72 @@ const resetAll = () => {
   }
 }
 
+.controls {
+  display: flex;
+  gap: 10px;
+}
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 14px;
+}
+
+.btn-race {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-race:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-next {
+  background: #27ae60;
+  color: white;
+}
+
+.btn-next:hover {
+  background: #219a52;
+}
+
+.btn-reset {
+  background: #7f8c8d;
+  color: white;
+}
+
+.btn-reset:hover {
+  background: #6c757d;
+}
+
+.btn:disabled {
+  background: #bdc3c7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 .track-container {
+  flex: 1;
   background: white;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 20px;
-  overflow-x: auto;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
 .track {
   position: relative;
-  min-height: 520px;
-  background: linear-gradient(90deg, #90ee90 0%, #90ee90 95%, #ffd700 95%, #ffd700 100%);
+  height: 100%;
+  min-height: 450px;
+  background: linear-gradient(90deg, #2ecc71 0%, #27ae60 70%, #f1c40f 70%, #f39c12 100%);
   border-radius: 8px;
-  border: 2px solid #27ae60;
+  border: 3px solid #27ae60;
 }
 
 .finish-line {
@@ -219,8 +224,8 @@ const resetAll = () => {
   right: 0;
   top: 0;
   bottom: 0;
-  width: 4px;
-  background: repeating-linear-gradient(45deg, #000, #000 10px, #fff 10px, #fff 20px);
+  width: 6px;
+  background: repeating-linear-gradient(45deg, #2c3e50, #2c3e50 8px, #ecf0f1 8px, #ecf0f1 16px);
   z-index: 10;
 }
 
@@ -228,61 +233,86 @@ const resetAll = () => {
   position: absolute;
   width: 100%;
   height: 40px;
-  border-bottom: 2px dashed rgba(255, 255, 255, 0.5);
+  border-bottom: 2px dashed rgba(255, 255, 255, 0.3);
   display: flex;
   align-items: center;
 }
 
-.lane-number {
+.lane-info {
   position: absolute;
-  left: -30px;
-  width: 25px;
-  text-align: center;
-  font-weight: bold;
-  color: #2c3e50;
-  background: white;
-  border-radius: 50%;
-  width: 25px;
-  height: 25px;
-  line-height: 25px;
-  font-size: 12px;
+  left: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 5;
 }
 
-.horse {
-  position: absolute;
-  width: 30px;
-  height: 30px;
+.lane-number {
+  width: 24px;
+  height: 24px;
+  background: white;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
-  transition: left 0.1s linear;
-  z-index: 5;
+  font-weight: bold;
+  font-size: 12px;
+  color: #2c3e50;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .horse-name {
-  position: absolute;
-  left: 5px;
-  font-size: 12px;
-  font-weight: bold;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
   color: #2c3e50;
-  background: rgba(255, 255, 255, 0.9);
-  padding: 2px 6px;
-  border-radius: 10px;
-  top: -20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.horse {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: left 0.1s linear;
+  z-index: 8;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+  border: 2px solid white;
 }
 
 .no-race {
-  text-align: center;
-  padding: 60px 20px;
-  color: #7f8c8d;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   background: white;
-  border-radius: 8px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.no-race p {
+.empty-state {
+  text-align: center;
+  color: #7f8c8d;
+}
+
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+}
+
+.empty-state h3 {
+  margin: 0 0 10px 0;
+  color: #2c3e50;
+  font-size: 1.5em;
+}
+
+.empty-state p {
   margin: 0;
   font-size: 16px;
 }

@@ -1,40 +1,38 @@
 <template>
   <div class="horse-generator">
     <div class="header">
-      <h2>Horse Generator</h2>
-      <button @click="generateHorses" class="btn btn-primary" :disabled="isRacing">
-        Generate Horses
-      </button>
+      <h3>🐎 Horses ({{ horses.length }}/20)</h3>
     </div>
 
-    <div v-if="horses.length > 0" class="horses-grid">
-      <div
-        v-for="horse in horses"
-        :key="horse.id"
-        class="horse-card"
-        :style="{ borderColor: horse.color }"
-      >
+    <div v-if="horses.length > 0" class="horses-list">
+      <div v-for="horse in horses" :key="horse.id" class="horse-item">
         <div class="horse-info">
-          <div class="horse-name">{{ horse.name }}</div>
+          <div class="horse-color" :style="{ backgroundColor: horse.color }"></div>
           <div class="horse-details">
-            <span class="condition">Condition: {{ horse.condition }}/100</span>
-            <div class="color-indicator" :style="{ backgroundColor: horse.color }"></div>
-          </div>
-          <div class="condition-bar">
-            <div
-              class="condition-fill"
-              :style="{
-                width: `${horse.condition}%`,
-                backgroundColor: horse.color,
-              }"
-            ></div>
+            <div class="horse-name">{{ horse.name }}</div>
+            <div class="horse-condition">
+              <div class="condition-bar">
+                <div
+                  class="condition-fill"
+                  :style="{
+                    width: `${horse.condition}%`,
+                    backgroundColor: horse.color,
+                  }"
+                ></div>
+              </div>
+              <span class="condition-text">{{ horse.condition }}</span>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
     <div v-else class="no-horses">
-      <p>No horses generated yet. Click "Generate Horses" to start!</p>
+      <div class="empty-state">
+        <div class="empty-icon">🐎</div>
+        <p>No horses yet</p>
+        <small>Generate horses to start</small>
+      </div>
     </div>
   </div>
 </template>
@@ -46,123 +44,130 @@ import { useStore } from 'vuex'
 const store = useStore()
 
 const horses = computed(() => store.getters['horses/getAllHorses'])
-const isRacing = computed(() => store.getters['races/isRacing'])
-
-const generateHorses = () => {
-  store.dispatch('horses/generateHorses')
-}
 </script>
 
 <style scoped>
 .horse-generator {
   padding: 20px;
-  background: #f8f9fa;
-  border-radius: 10px;
-  margin-bottom: 20px;
+  height: 100%;
 }
 
 .header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e1e8ed;
 }
 
-.header h2 {
+.header h3 {
   margin: 0;
   color: #2c3e50;
-}
-
-.btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.btn-primary {
-  background-color: #3498db;
-  color: white;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background-color: #2980b9;
-}
-
-.btn:disabled {
-  background-color: #bdc3c7;
-  cursor: not-allowed;
-}
-
-.horses-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 15px;
-}
-
-.horse-card {
-  background: white;
-  border: 3px solid #ddd;
-  border-radius: 8px;
-  padding: 15px;
-  transition: transform 0.2s;
-}
-
-.horse-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.horse-name {
-  font-weight: bold;
   font-size: 16px;
-  margin-bottom: 10px;
-  color: #2c3e50;
+  font-weight: 600;
 }
 
-.horse-details {
+.horses-list {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.horse-item {
+  padding: 12px;
+  border: 1px solid #e1e8ed;
+  border-radius: 8px;
+  transition: all 0.2s;
+  background: #fafbfc;
+}
+
+.horse-item:hover {
+  background: #f0f2f5;
+  border-color: #d1d9e0;
+  transform: translateX(2px);
+}
+
+.horse-info {
+  display: flex;
   align-items: center;
-  margin-bottom: 10px;
+  gap: 12px;
 }
 
-.condition {
-  font-size: 14px;
-  color: #7f8c8d;
-}
-
-.color-indicator {
-  width: 20px;
-  height: 20px;
+.horse-color {
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   border: 2px solid #fff;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.horse-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.horse-name {
+  font-weight: 600;
+  font-size: 13px;
+  color: #2c3e50;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.horse-condition {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .condition-bar {
-  width: 100%;
-  height: 6px;
-  background-color: #ecf0f1;
-  border-radius: 3px;
+  flex: 1;
+  height: 4px;
+  background-color: #e1e8ed;
+  border-radius: 2px;
   overflow: hidden;
 }
 
 .condition-fill {
   height: 100%;
   transition: width 0.5s ease;
+  border-radius: 2px;
+}
+
+.condition-text {
+  font-size: 11px;
+  color: #7f8c8d;
+  font-weight: 600;
+  min-width: 20px;
+  text-align: right;
 }
 
 .no-horses {
-  text-align: center;
-  padding: 40px;
-  color: #7f8c8d;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
 }
 
-.no-horses p {
-  margin: 0;
-  font-size: 16px;
+.empty-state {
+  text-align: center;
+  color: #95a5a6;
+}
+
+.empty-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.empty-state small {
+  font-size: 12px;
+  opacity: 0.7;
 }
 </style>
