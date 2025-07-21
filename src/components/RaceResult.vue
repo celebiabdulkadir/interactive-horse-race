@@ -7,14 +7,43 @@
       </div>
     </div>
 
+    <!-- FIXED: Live Results Display -->
+    <div v-if="shouldShowLiveResults" class="live-results">
+      <div class="live-header">
+        <h4>🔴 LIVE: Round {{ currentRound }} Results</h4>
+        <div class="live-count">
+          {{ liveResults.length }}/{{ totalHorsesInCurrentRace }} finished
+        </div>
+      </div>
+      <div class="live-podium">
+        <div
+          v-for="result in liveResults"
+          :key="`live-${result.horse.id}`"
+          class="live-result-item"
+          :class="`position-${result.position}`"
+        >
+          <div class="live-position">{{ result.position }}</div>
+          <div class="horse-mini" :style="{ backgroundColor: result.horse.color }"></div>
+          <div class="live-horse-info">
+            <div class="horse-name-live">{{ result.horse.name }}</div>
+            <div class="time-live">{{ result.time.toFixed(2) }}s</div>
+          </div>
+          <div v-if="result.position === 1" class="winner-crown">👑</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rest of the component remains the same -->
     <div v-if="allResults.length > 0" class="results-container">
-      <div class="results-grid">
+      <!-- Completed races grid -->
+      <div class="results-grid" :class="{ 'with-live': isRacing && currentRaceResults }">
         <div v-for="(results, raceIndex) in allResults" :key="raceIndex" class="race-result-card">
           <div class="card-header">
             <span class="round-badge">R{{ raceIndex + 1 }}</span>
             <span class="distance">{{ getRaceDistance(raceIndex) }}m</span>
           </div>
 
+          <!-- Show top 3 in podium style -->
           <div class="podium-mini">
             <div v-for="result in results.slice(0, 3)" :key="result.position" class="podium-item">
               <div class="position-medal">{{ getMedal(result.position) }}</div>
@@ -25,6 +54,19 @@
               </div>
             </div>
           </div>
+
+          <!-- Show all horses in expandable list -->
+          <details class="all-results" v-if="results.length > 3">
+            <summary class="show-all">Show all {{ results.length }} horses</summary>
+            <div class="full-results-list">
+              <div v-for="result in results.slice(3)" :key="result.position" class="result-row">
+                <span class="position-num">{{ result.position }}</span>
+                <div class="horse-mini" :style="{ backgroundColor: result.horse.color }"></div>
+                <span class="horse-name-small">{{ result.horse.name }}</span>
+                <span class="time-small">{{ result.time.toFixed(2) }}s</span>
+              </div>
+            </div>
+          </details>
         </div>
       </div>
 
@@ -56,7 +98,7 @@
       </div>
     </div>
 
-    <div v-else class="no-results">
+    <div v-else-if="!shouldShowLiveResults" class="no-results">
       <span class="empty-icon">🏁</span>
       <span>Race results will appear here after completing races</span>
     </div>
@@ -64,7 +106,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { useStore } from 'vuex'
 import { RACE_DISTANCES, type Horse, type RaceResult } from '../store/types'
 
@@ -72,6 +114,51 @@ const store = useStore()
 
 const allResults = computed(() => store.getters['races/allResults'])
 const totalRounds = computed(() => store.getters['races/totalRounds'])
+const currentRound = computed(() => store.getters['races/currentRound'])
+const currentRace = computed(() => store.getters['races/currentRace'])
+const isRacing = computed(() => store.getters['races/isRacing'])
+
+// FIXED: Force reactive updates
+const isShowingResults = computed(() => {
+  const result = store.getters['races/isShowingResults']
+  console.log('🔄 isShowingResults computed:', result)
+  return result
+})
+
+const liveResults = computed(() => {
+  const results = store.getters['races/currentRaceResults']
+  console.log('🔄 liveResults computed:', results.length)
+  return results
+})
+
+const totalHorsesInCurrentRace = computed(() => {
+  return currentRace.value?.horses?.length || 0
+})
+
+const shouldShowLiveResults = computed(() => {
+  const should = isShowingResults.value && liveResults.value.length > 0
+  console.log('🔄 shouldShowLiveResults:', should)
+  return should
+})
+
+// Watch for changes to debug
+watch(
+  liveResults,
+  (newResults) => {
+    console.log('👀 Live results changed:', newResults.length)
+  },
+  { deep: true },
+)
+
+watch(isShowingResults, (showing) => {
+  console.log('👀 Showing results changed:', showing)
+})
+
+// Get current race results for live display
+const currentRaceResults = computed(() => {
+  if (!currentRace.value || !isRacing.value) return null
+  return currentRace.value.results || []
+})
 
 const getRaceDistance = (raceIndex: number): number => {
   return RACE_DISTANCES[raceIndex] || 0
@@ -337,5 +424,187 @@ const getAverageTime = (): string => {
 
 .empty-icon {
   font-size: 24px;
+}
+
+/* NEW: Expandable results for all horses */
+.all-results {
+  margin-top: 10px;
+  border-top: 1px solid #e1e8ed;
+  padding-top: 8px;
+}
+
+.show-all {
+  cursor: pointer;
+  font-size: 11px;
+  color: #3498db;
+  font-weight: 600;
+  user-select: none;
+}
+
+.show-all:hover {
+  color: #2980b9;
+}
+
+.full-results-list {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.result-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+  font-size: 10px;
+}
+
+.position-num {
+  width: 16px;
+  text-align: center;
+  font-weight: 600;
+  color: #7f8c8d;
+}
+
+.horse-name-small {
+  flex: 1;
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.time-small {
+  font-weight: 600;
+  color: #e74c3c;
+}
+
+/* NEW: Live Results Styles */
+.live-results {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+  color: white;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+  animation: liveGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes liveGlow {
+  from {
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+  }
+  to {
+    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.5);
+  }
+}
+
+.live-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.live-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.live-count {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 10px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.live-podium {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.live-result-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 10px;
+  border-radius: 8px;
+  transition: all 0.3s;
+  animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.live-result-item.position-1 {
+  background: rgba(255, 215, 0, 0.3);
+  border: 2px solid rgba(255, 215, 0, 0.8);
+}
+
+.live-result-item.position-2 {
+  background: rgba(192, 192, 192, 0.3);
+  border: 2px solid rgba(192, 192, 192, 0.8);
+}
+
+.live-result-item.position-3 {
+  background: rgba(205, 127, 50, 0.3);
+  border: 2px solid rgba(205, 127, 50, 0.8);
+}
+
+.live-position {
+  width: 30px;
+  height: 30px;
+  background: white;
+  color: #2c3e50;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.live-horse-info {
+  flex: 1;
+}
+
+.horse-name-live {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.time-live {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.winner-crown {
+  font-size: 20px;
+  animation: bounce 1s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.results-grid.with-live {
+  margin-top: 0;
 }
 </style>

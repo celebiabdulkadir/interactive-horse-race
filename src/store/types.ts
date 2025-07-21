@@ -10,11 +10,12 @@ export interface Horse {
 export interface Race {
   id: number
   round: number
-  distance: number // in meters
+  distance: number
   horses: Horse[]
   results: RaceResult[]
   status: 'pending' | 'running' | 'finished'
   winner?: Horse
+  showingResults?: boolean // New flag
 }
 
 export interface RaceResult {

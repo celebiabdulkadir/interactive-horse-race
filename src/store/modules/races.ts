@@ -40,15 +40,30 @@ const racesModule: Module<RacesState, RootState> = {
       }
     },
 
+    // NEW: Mark race as showing results but keep animation running
+    FIRST_HORSE_FINISHED(state) {
+      const currentRace = state.schedule.races[state.schedule.currentRound]
+      if (currentRace) {
+        currentRace.showingResults = true // New flag for showing results
+        // DON'T change status to 'finished' yet - keep it 'running'
+      }
+    },
+
+    // Only fully finish when ALL horses are done
     FINISH_RACE(state, results: RaceResult[]) {
       const currentRace = state.schedule.races[state.schedule.currentRound]
       if (currentRace) {
         currentRace.results = results
-        currentRace.status = 'finished'
+        currentRace.status = 'finished' // NOW we can mark as finished
         currentRace.winner = results[0]?.horse
-        state.allResults.push(results)
+        currentRace.showingResults = true
+        if (!state.allResults[state.schedule.currentRound]) {
+          state.allResults.push(results)
+        } else {
+          state.allResults[state.schedule.currentRound] = results
+        }
       }
-      state.isRacing = false
+      state.isRacing = false // NOW we can stop racing
     },
 
     NEXT_ROUND(state) {
@@ -62,6 +77,47 @@ const racesModule: Module<RacesState, RootState> = {
       state.schedule.currentRound = 0
       state.allResults = []
       state.isRacing = false
+    },
+
+    UPDATE_RACE_RESULTS(state, { raceIndex, results }) {
+      if (state.schedule.races[raceIndex]) {
+        state.schedule.races[raceIndex].results = results
+        // Update the overall results array
+        if (state.allResults[raceIndex]) {
+          state.allResults[raceIndex] = results
+        } else {
+          state.allResults.push(results)
+        }
+      }
+    },
+
+    ADD_HORSE_TO_RESULTS(state, { horse, finishTime, position }) {
+      const raceIndex = state.schedule.currentRound
+      const race = state.schedule.races[raceIndex]
+      if (race) {
+        // Initialize results array if not exists
+        if (!race.results) {
+          race.results = []
+        }
+
+        // Add or update this horse in the results
+        const existingIndex = race.results.findIndex((r) => r.horse.id === horse.id)
+        const newResult = { position, horse, time: finishTime }
+
+        if (existingIndex >= 0) {
+          race.results[existingIndex] = newResult
+        } else {
+          race.results.push(newResult)
+        }
+
+        // Resort results by position
+        race.results.sort((a, b) => a.position - b.position)
+
+        // Update winner if this is first place
+        if (position === 1) {
+          race.winner = horse
+        }
+      }
     },
   },
 
@@ -108,55 +164,110 @@ const racesModule: Module<RacesState, RootState> = {
       await dispatch('simulateRace', currentRace)
     },
 
-    async simulateRace({ commit, dispatch }, race: Race) {
+    async simulateRace({ commit, dispatch, state }, race: Race) {
       const raceDistance = race.distance
-      const raceDuration = 10000 // 10 seconds per race
-      const updateInterval = 50 // Update every 50ms
-      const totalUpdates = raceDuration / updateInterval
 
       return new Promise<void>((resolve) => {
-        let updateCount = 0
-        const raceInterval = setInterval(() => {
-          updateCount++
-          const progress = updateCount / totalUpdates
+        const startTime = performance.now()
+        const finishedHorses = new Set()
+        const horseConfigs = new Map()
+        const lastPositions = new Map() // Track last position to prevent going backwards
+        let firstHorseFinished = false
+        let finishPosition = 1
 
-          // Update each horse's position with some randomness
-          race.horses.forEach((horse) => {
-            const baseProgress = progress
-            const speedVariation = horse.speed * (0.8 + Math.random() * 0.4) // Speed variation
-            const randomFactor = Math.random() * 0.1 // Small random factor
-            const horseProgress = Math.min(1, baseProgress * speedVariation + randomFactor)
+        // Configure each horse's racing parameters ONCE
+        race.horses.forEach((horse) => {
+          const horseSpeed = horse.speed || horse.condition / 100
+          const baseSpeed = horseSpeed * (0.8 + Math.random() * 0.4)
 
-            const newPosition = horseProgress * raceDistance
-            dispatch(
-              'horses/updateHorsePosition',
-              { horseId: horse.id, position: newPosition },
-              { root: true },
-            )
+          horseConfigs.set(horse.id, {
+            speed: baseSpeed,
+            startDelay: Math.random() * 300,
+            speedVariation: Math.random() * 0.1 + 0.95, // 0.95-1.05 variation
           })
 
-          // Finish race when time is up
-          if (updateCount >= totalUpdates) {
-            clearInterval(raceInterval)
+          lastPositions.set(horse.id, 0) // Initialize position
+        })
 
-            // Calculate final results
-            const sortedHorses = [...race.horses].sort((a, b) => {
-              // Final race logic with condition and some randomness
-              const aScore = a.condition + Math.random() * 20
-              const bScore = b.condition + Math.random() * 20
-              return bScore - aScore
-            })
+        const updateRace = (currentTime: number) => {
+          const elapsed = currentTime - startTime
+          let allFinished = true
 
-            const results: RaceResult[] = sortedHorses.map((horse, index) => ({
-              position: index + 1,
-              horse,
-              time: raceDuration / 1000 + (Math.random() * 2 - 1), // Base time ± 1 second
-            }))
+          race.horses.forEach((horse) => {
+            // Skip if horse already finished
+            if (finishedHorses.has(horse.id)) {
+              return
+            }
 
-            commit('FINISH_RACE', results)
+            const config = horseConfigs.get(horse.id)
+            const lastPosition = lastPositions.get(horse.id) || 0
+
+            if (!config || elapsed < config.startDelay) {
+              allFinished = false
+              return
+            }
+
+            const adjustedElapsed = elapsed - config.startDelay
+
+            // FIXED: Smooth, consistent movement - no back/forward jumping
+            const baseDistance = (adjustedElapsed / 1000) * config.speed * 80
+
+            // Apply small, smooth variation (not sine wave that causes back/forth)
+            const smoothVariation = config.speedVariation
+            const newPosition = Math.min(raceDistance, baseDistance * smoothVariation)
+
+            // CRITICAL: Never go backwards!
+            const finalPosition = Math.max(lastPosition, newPosition)
+            lastPositions.set(horse.id, finalPosition)
+
+            // Update position
+            dispatch(
+              'horses/updateHorsePosition',
+              { horseId: horse.id, position: finalPosition },
+              { root: true },
+            )
+
+            // Check if horse just finished
+            if (finalPosition >= raceDistance && !finishedHorses.has(horse.id)) {
+              const finishTime = adjustedElapsed / 1000
+              finishedHorses.add(horse.id)
+
+              console.log(`🏁 ${horse.name} finished in position ${finishPosition}!`)
+
+              // Add to results immediately
+              commit('ADD_HORSE_TO_RESULTS', {
+                horse,
+                finishTime,
+                position: finishPosition,
+              })
+
+              // FIXED: Trigger first horse finished
+              if (!firstHorseFinished) {
+                firstHorseFinished = true
+                commit('FIRST_HORSE_FINISHED')
+                console.log('🎉 RESULTS SHOWING NOW!')
+              }
+
+              finishPosition++
+            }
+
+            if (finalPosition < raceDistance) {
+              allFinished = false
+            }
+          })
+
+          if (allFinished) {
+            console.log('🏆 All horses finished!')
+            const currentRace = state.schedule.races[state.schedule.currentRound]
+            const finalResults = currentRace?.results || []
+            commit('FINISH_RACE', finalResults)
             resolve()
+          } else {
+            requestAnimationFrame(updateRace)
           }
-        }, updateInterval)
+        }
+
+        requestAnimationFrame(updateRace)
       })
     },
 
@@ -188,9 +299,26 @@ const racesModule: Module<RacesState, RootState> = {
 
     isScheduleGenerated: (state) => state.schedule.races.length > 0,
 
+    // New getter to check if we should show results
+    isShowingResults: (state) => {
+      const currentRace = state.schedule.races[state.schedule.currentRound]
+      const showing = currentRace?.showingResults || false
+      console.log('🔍 isShowingResults:', showing)
+      return showing
+    },
+
+    // Update existing getters
     canStartRace: (state) => {
       const currentRace = state.schedule.races[state.schedule.currentRound]
       return currentRace && currentRace.status === 'pending' && !state.isRacing
+    },
+
+    // Current race results for live display
+    currentRaceResults: (state) => {
+      const currentRace = state.schedule.races[state.schedule.currentRound]
+      const results = currentRace?.results || []
+      console.log('🔍 currentRaceResults:', results.length)
+      return results
     },
 
     canMoveToNextRound: (state) => {

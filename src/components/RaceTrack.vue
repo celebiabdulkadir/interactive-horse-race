@@ -25,13 +25,13 @@
     </div>
 
     <div v-if="currentRace" class="track-container">
-      <div class="track">
+      <div class="track" :style="{ height: `${getTrackHeight()}px` }">
         <div class="finish-line"></div>
         <div
           v-for="(horse, index) in currentRace.horses"
           :key="horse.id"
           class="lane"
-          :style="{ top: `${index * 45 + 10}px` }"
+          :style="{ top: `${index * 40 + 15}px` }"
         >
           <div class="lane-info">
             <div class="lane-number">{{ index + 1 }}</div>
@@ -39,9 +39,13 @@
           </div>
           <div
             class="horse"
+            :class="{
+              running: isRacing, // Keep running as long as race is active
+              finished: horse.position >= currentRace.distance,
+            }"
             :style="{
-              left: `${Math.min(95, (horse.position / currentRace.distance) * 95)}%`,
-              backgroundColor: horse.color,
+              '--horse-progress': Math.min(95, (horse.position / currentRace.distance) * 95),
+              '--horse-color': horse.color,
             }"
           >
             🐎
@@ -77,6 +81,14 @@ const isAllRacesFinished = computed(() => store.getters['races/isAllRacesFinishe
 const isRacing = computed(() => store.getters['races/isRacing'])
 const isScheduleGenerated = computed(() => store.getters['races/isScheduleGenerated'])
 
+// Calculate track height based on number of horses
+const getTrackHeight = () => {
+  if (!currentRace.value) return 400
+  const numberOfHorses = currentRace.value.horses.length
+  // 40px per lane + 15px top padding + 15px bottom padding
+  return numberOfHorses * 40 + 30
+}
+
 const startRace = () => {
   store.dispatch('races/startCurrentRace')
 }
@@ -107,6 +119,7 @@ const resetAll = () => {
   background: white;
   border-radius: 10px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0; /* Prevent header from shrinking */
 }
 
 .race-info h2 {
@@ -201,19 +214,23 @@ const resetAll = () => {
   box-shadow: none;
 }
 
+/* FIXED: Track container with proper scrolling */
 .track-container {
   flex: 1;
   background: white;
   border-radius: 10px;
   padding: 20px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+  overflow-y: auto; /* Allow vertical scrolling if needed */
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+  min-height: 0; /* Allow flex item to shrink */
 }
 
 .track {
   position: relative;
-  height: 100%;
-  min-height: 450px;
+  width: 100%;
+  /* Height is now dynamic based on number of horses */
+  min-height: 200px;
   background: linear-gradient(90deg, #2ecc71 0%, #27ae60 70%, #f1c40f 70%, #f39c12 100%);
   border-radius: 8px;
   border: 3px solid #27ae60;
@@ -229,13 +246,18 @@ const resetAll = () => {
   z-index: 10;
 }
 
+/* FIXED: Lane sizing and positioning */
 .lane {
   position: absolute;
   width: 100%;
-  height: 40px;
-  border-bottom: 2px dashed rgba(255, 255, 255, 0.3);
+  height: 35px; /* Slightly smaller to fit more lanes */
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.4);
   display: flex;
   align-items: center;
+}
+
+.lane:last-child {
+  border-bottom: none;
 }
 
 .lane-info {
@@ -243,47 +265,90 @@ const resetAll = () => {
   left: 10px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   z-index: 5;
 }
 
 .lane-number {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   background: white;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  font-size: 12px;
+  font-size: 11px;
   color: #2c3e50;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .horse-name {
   background: rgba(255, 255, 255, 0.95);
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 11px;
+  padding: 3px 6px;
+  border-radius: 10px;
+  font-size: 10px;
   font-weight: 600;
   color: #2c3e50;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  white-space: nowrap;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+/* FIXED: Smooth horse movement without flickering */
 .horse {
   position: absolute;
-  width: 32px;
-  height: 32px;
+  left: calc(var(--horse-progress) * 1%);
+  width: 28px; /* Slightly smaller */
+  height: 28px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
-  transition: left 0.1s linear;
+  font-size: 16px; /* Slightly smaller */
   z-index: 8;
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
   border: 2px solid white;
+  background-color: var(--horse-color);
+
+  /* REMOVED: All transitions that cause conflicts */
+  transform: translateZ(0);
+  will-change: left;
+  /* NO transition on left property! */
+}
+
+/* Running animation */
+.horse.running {
+  animation: gallop 1s ease-in-out infinite;
+}
+
+/* Simplified animation to prevent jumpiness */
+@keyframes gallop {
+  0%,
+  100% {
+    transform: translateZ(0) scale(1);
+  }
+  50% {
+    transform: translateZ(0) scale(1.05) translateY(-2px);
+  }
+}
+
+.horse.finished {
+  animation: celebrate 1s ease-out;
+}
+
+@keyframes celebrate {
+  0% {
+    transform: translateZ(0) scale(1);
+  }
+  50% {
+    transform: translateZ(0) scale(1.2) rotate(10deg);
+  }
+  100% {
+    transform: translateZ(0) scale(1) rotate(0deg);
+  }
 }
 
 .no-race {
@@ -315,5 +380,27 @@ const resetAll = () => {
 .empty-state p {
   margin: 0;
   font-size: 16px;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 968px) {
+  .track-container {
+    max-height: 350px; /* Limit height on mobile */
+  }
+
+  .lane {
+    height: 30px; /* Even smaller on mobile */
+  }
+
+  .horse {
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+  }
+
+  .horse-name {
+    font-size: 9px;
+    max-width: 80px;
+  }
 }
 </style>

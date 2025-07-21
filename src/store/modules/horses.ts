@@ -48,7 +48,7 @@ const horsesModule: Module<HorsesState, RootState> = {
         }
 
         // Calculate speed based on condition (higher condition = higher speed potential)
-        horse.speed = (horse.condition / 100) * (Math.random() * 0.5 + 0.75) // 0.75-1.25 multiplier
+        horse.speed = (horse.condition / 100) * (0.8 + Math.random() * 0.4) // 0.8-1.2 multiplier
 
         horses.push(horse)
       }
