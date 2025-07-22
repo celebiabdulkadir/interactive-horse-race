@@ -89,8 +89,13 @@ const getTrackHeight = () => {
   return numberOfHorses * 40 + 30
 }
 
-const startRace = () => {
-  store.dispatch('races/startCurrentRace')
+const startRace = async () => {
+  try {
+    await store.dispatch('races/startCurrentRace')
+  } catch (error) {
+    console.error('Failed to start race:', error)
+    // Show user-friendly error message
+  }
 }
 
 const nextRound = () => {

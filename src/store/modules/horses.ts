@@ -6,6 +6,29 @@ export interface HorsesState {
   totalHorses: number
 }
 
+const HORSE_NAMES = [
+  'Thunder Bolt',
+  'Lightning Flash',
+  'Storm Rider',
+  'Wind Walker',
+  'Fire Spirit',
+  'Golden Arrow',
+  'Silver Streak',
+  'Midnight Star',
+  'Racing Rainbow',
+  'Rocket Runner',
+  'Racing Rebel',
+  'Shadow Hunter',
+  'Blazing Comet',
+  'Diamond Dash',
+  'Crimson Fury',
+  'Mystic Wings',
+  'Star Chaser',
+  'Victory Charge',
+  'Noble Knight',
+  'Dream Catcher',
+]
+
 const horsesModule: Module<HorsesState, RootState> = {
   namespaced: true,
 
@@ -40,7 +63,7 @@ const horsesModule: Module<HorsesState, RootState> = {
       for (let i = 1; i <= state.totalHorses; i++) {
         const horse: Horse = {
           id: i,
-          name: `Horse ${i}`,
+          name: HORSE_NAMES[i - 1] || `Horse ${i}`,
           color: HORSE_COLORS[i - 1] || `#${Math.floor(Math.random() * 16777215).toString(16)}`,
           condition: Math.floor(Math.random() * 100) + 1, // 1-100
           position: 0,

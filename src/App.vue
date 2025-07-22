@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, watch, onUnmounted } from 'vue'
 import { useStore } from 'vuex'
 import HorseGenerator from './components/HorseGenerator.vue'
 import RaceScheduler from './components/RaceScheduler.vue'
@@ -10,6 +10,29 @@ const store = useStore()
 
 const horses = computed(() => store.getters['horses/getAllHorses'])
 const isRacing = computed(() => store.getters['races/isRacing'])
+
+// Simple race protection
+const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+  if (isRacing.value) {
+    event.preventDefault()
+  }
+}
+
+// Watch for race status changes
+watch(isRacing, (racing) => {
+  if (racing) {
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    document.title = 'Racing... - Horse Racing Game'
+  } else {
+    window.removeEventListener('beforeunload', handleBeforeUnload)
+    document.title = 'Horse Racing Game'
+  }
+})
+
+// Cleanup
+onUnmounted(() => {
+  window.removeEventListener('beforeunload', handleBeforeUnload)
+})
 
 const generateHorses = () => {
   store.dispatch('horses/generateHorses')
@@ -39,6 +62,12 @@ const generateSchedule = () => {
         >
           Generate Schedule
         </button>
+
+        <!-- Race Status Indicator -->
+        <div v-if="isRacing" class="race-status-indicator">
+          <div class="pulse-dot"></div>
+          <span>Race in Progress</span>
+        </div>
       </div>
     </header>
 
@@ -236,5 +265,41 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.4);
+}
+
+/* NEW: Race Status Indicator */
+.race-status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 8px 12px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  background: #ff6b6b;
+  border-radius: 50%;
+  animation: pulse-red 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-red {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 </style>
