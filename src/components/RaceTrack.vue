@@ -89,7 +89,9 @@ const resetAll = () => {
           >
             <div class="lane-info">
               <div class="lane-number">{{ index + 1 }}</div>
-              <div class="horse-name">{{ horse.name }}</div>
+              <div class="horse-details">
+                <span class="horse-name">{{ horse.name }}</span>
+              </div>
             </div>
             <div
               class="horse"

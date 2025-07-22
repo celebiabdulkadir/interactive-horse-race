@@ -49,6 +49,13 @@ const horsesModule: Module<HorsesState, RootState> = {
       }
     },
 
+    UPDATE_HORSE_SPEED(state, { horseId, speed }: { horseId: number; speed: number }) {
+      const horse = state.horses.find((h) => h.id === horseId)
+      if (horse) {
+        horse.speed = speed
+      }
+    },
+
     RESET_HORSE_POSITIONS(state) {
       state.horses.forEach((horse) => {
         horse.position = 0
@@ -85,6 +92,10 @@ const horsesModule: Module<HorsesState, RootState> = {
 
     updateHorsePosition({ commit }, payload: { horseId: number; position: number }) {
       commit('UPDATE_HORSE_POSITION', payload)
+    },
+
+    updateHorseSpeed({ commit }, payload: { horseId: number; speed: number }) {
+      commit('UPDATE_HORSE_SPEED', payload)
     },
 
     resetPositions({ commit }) {

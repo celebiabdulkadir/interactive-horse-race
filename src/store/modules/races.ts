@@ -169,40 +169,64 @@ const racesModule: Module<RacesState, RootState> = {
 
       return new Promise<void>((resolve) => {
         const startTime = performance.now()
+        let lastFrameTime = startTime
         const finishedHorses = new Set()
         const horseConfigs = new Map()
         const lastPositions = new Map() // Track last position to prevent going backwards
         let firstHorseFinished = false
         let finishPosition = 1
+        const randomizeSpeedInterval = 200
+        const horseVariations = new Map<number, number>()
+        let lastRandomizationTime = startTime
 
         // Configure each horse's racing parameters ONCE
         race.horses.forEach((horse) => {
           // Distance factor: Longer races need more speed to finish in reasonable time
           const distanceFactor = raceDistance / 1000 // Normalize to 1km baseline
 
-          // Calculate target race duration (30-60 seconds depending on distance)
-          const targetDuration = 30 + distanceFactor * 30 // 30s for 1km, 60s for 2km
+          // Calculate target race duration (15-30 seconds depending on distance) - FASTER RACES
+          const targetDuration = 15 + distanceFactor * 15 // 15s for 1km, 30s for 2km
 
           // Calculate required speed to finish in target duration
           const requiredSpeed = raceDistance / targetDuration
 
-          // Apply horse's condition to required speed
-          const adjustedSpeed = requiredSpeed * (0.8 + (horse.condition / 100) * 0.4)
-
-          // Add 5% randomization (±2.5% variation)
-          const randomVariation = 0.975 + Math.random() * 0.05 // 97.5% - 102.5%
-          const finalSpeed = adjustedSpeed * randomVariation
+          // Apply horse's condition to required speed - MINIMAL IMPACT
+          const adjustedSpeed = requiredSpeed * (1 + (horse.condition / 100) * 0.1) // Only up to 10% bonus
 
           horseConfigs.set(horse.id, {
-            speed: finalSpeed,
-            startDelay: Math.random() * 300,
-            // REMOVED: speedVariation since we now have proper randomization above
+            speed: adjustedSpeed,
+            startDelay: Math.random() * randomizeSpeedInterval,
           })
 
+          horseVariations.set(horse.id, 0.3 + Math.random() * 1.4) // Much wider range
           lastPositions.set(horse.id, 0) // Initialize position
         })
 
         const updateRace = (currentTime: number) => {
+          // Only randomize speed at a set interval
+          if (currentTime - lastRandomizationTime > randomizeSpeedInterval) {
+            race.horses.forEach((horse) => {
+              if (!finishedHorses.has(horse.id)) {
+                const currentVariation = 0.3 + Math.random() * 1.4 // Much wider range
+                horseVariations.set(horse.id, currentVariation)
+
+                // Dispatch action to update speed in the central store
+                const config = horseConfigs.get(horse.id)
+                if (config) {
+                  const newSpeed = config.speed * currentVariation
+                  dispatch(
+                    'horses/updateHorseSpeed',
+                    { horseId: horse.id, speed: newSpeed },
+                    { root: true },
+                  )
+                }
+              }
+            })
+            lastRandomizationTime = currentTime
+          }
+
+          const deltaTime = (currentTime - lastFrameTime) / 1000
+          lastFrameTime = currentTime
           const elapsed = currentTime - startTime
           let allFinished = true
 
@@ -220,13 +244,13 @@ const racesModule: Module<RacesState, RootState> = {
               return
             }
 
-            const adjustedElapsed = elapsed - config.startDelay
-
             // IMPROVED: Distance-based movement calculation
-            const baseDistance = (adjustedElapsed / 1000) * config.speed // Direct speed in m/s
+            const currentVariation = horseVariations.get(horse.id) || 1.0
+            const currentSpeed = config.speed * currentVariation
+            const distanceMoved = currentSpeed * deltaTime
+            let newPosition = lastPosition + distanceMoved
 
-            // No additional variation needed since speed is already randomized
-            const newPosition = Math.min(raceDistance, baseDistance)
+            newPosition = Math.min(raceDistance, newPosition)
 
             // CRITICAL: Never go backwards!
             const finalPosition = Math.max(lastPosition, newPosition)
@@ -241,7 +265,7 @@ const racesModule: Module<RacesState, RootState> = {
 
             // Check if horse just finished
             if (finalPosition >= raceDistance && !finishedHorses.has(horse.id)) {
-              const finishTime = adjustedElapsed / 1000
+              const finishTime = (elapsed - config.startDelay) / 1000
               finishedHorses.add(horse.id)
 
               console.log(`🏁 ${horse.name} finished in position ${finishPosition}!`)
