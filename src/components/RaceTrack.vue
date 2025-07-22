@@ -1,3 +1,42 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useStore } from 'vuex'
+
+const store = useStore()
+
+const currentRace = computed(() => store.getters['races/currentRace'])
+const canStartRace = computed(() => store.getters['races/canStartRace'])
+const canMoveToNextRound = computed(() => store.getters['races/canMoveToNextRound'])
+const isAllRacesFinished = computed(() => store.getters['races/isAllRacesFinished'])
+const isRacing = computed(() => store.getters['races/isRacing'])
+const isScheduleGenerated = computed(() => store.getters['races/isScheduleGenerated'])
+
+// Calculate track height based on number of horses
+const getTrackHeight = () => {
+  if (!currentRace.value) return 400
+  const numberOfHorses = currentRace.value.horses.length
+  // 40px per lane + 15px top padding + 15px bottom padding
+  return numberOfHorses * 40 + 30
+}
+
+const startRace = async () => {
+  try {
+    await store.dispatch('races/startCurrentRace')
+  } catch (error) {
+    console.error('Failed to start race:', error)
+    // Show user-friendly error message
+  }
+}
+
+const nextRound = () => {
+  store.dispatch('races/nextRound')
+  store.dispatch('horses/resetPositions', null)
+}
+
+const resetAll = () => {
+  store.dispatch('races/resetAll')
+}
+</script>
 <template>
   <div class="race-track">
     <div class="track-header">
@@ -68,59 +107,21 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { computed } from 'vue'
-import { useStore } from 'vuex'
-
-const store = useStore()
-
-const currentRace = computed(() => store.getters['races/currentRace'])
-const canStartRace = computed(() => store.getters['races/canStartRace'])
-const canMoveToNextRound = computed(() => store.getters['races/canMoveToNextRound'])
-const isAllRacesFinished = computed(() => store.getters['races/isAllRacesFinished'])
-const isRacing = computed(() => store.getters['races/isRacing'])
-const isScheduleGenerated = computed(() => store.getters['races/isScheduleGenerated'])
-
-// Calculate track height based on number of horses
-const getTrackHeight = () => {
-  if (!currentRace.value) return 400
-  const numberOfHorses = currentRace.value.horses.length
-  // 40px per lane + 15px top padding + 15px bottom padding
-  return numberOfHorses * 40 + 30
-}
-
-const startRace = async () => {
-  try {
-    await store.dispatch('races/startCurrentRace')
-  } catch (error) {
-    console.error('Failed to start race:', error)
-    // Show user-friendly error message
-  }
-}
-
-const nextRound = () => {
-  store.dispatch('races/nextRound')
-}
-
-const resetAll = () => {
-  store.dispatch('races/resetAll')
-}
-</script>
-
 <style scoped>
 .race-track {
-  padding: 20px;
+  padding: 10px;
   height: 100%;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
 }
 
 .track-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  padding: 15px;
+  margin-bottom: 10px;
+  padding: 5px;
   background: white;
   border-radius: 10px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -224,11 +225,11 @@ const resetAll = () => {
   flex: 1;
   background: white;
   border-radius: 10px;
-  padding: 20px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   overflow-y: auto; /* Allow vertical scrolling if needed */
   overflow-x: hidden; /* Prevent horizontal scrolling */
   min-height: 0; /* Allow flex item to shrink */
+  box-sizing: border-box;
 }
 
 .track {
@@ -239,6 +240,7 @@ const resetAll = () => {
   background: linear-gradient(90deg, #2ecc71 0%, #27ae60 70%, #f1c40f 70%, #f39c12 100%);
   border-radius: 8px;
   border: 3px solid #27ae60;
+  box-sizing: border-box;
 }
 
 .finish-line {

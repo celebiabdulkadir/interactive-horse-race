@@ -1,3 +1,11 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useStore } from 'vuex'
+
+const store = useStore()
+
+const horses = computed(() => store.getters['horses/getAllHorses'])
+</script>
 <template>
   <div class="horse-generator">
     <div class="header">
@@ -36,15 +44,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { computed } from 'vue'
-import { useStore } from 'vuex'
-
-const store = useStore()
-
-const horses = computed(() => store.getters['horses/getAllHorses'])
-</script>
 
 <style scoped>
 .horse-generator {
@@ -169,5 +168,13 @@ const horses = computed(() => store.getters['horses/getAllHorses'])
 .empty-state small {
   font-size: 12px;
   opacity: 0.7;
+}
+
+@media (max-width: 1400px) {
+  .horses-list {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
 }
 </style>

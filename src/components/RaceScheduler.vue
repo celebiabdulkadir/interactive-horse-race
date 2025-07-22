@@ -1,3 +1,14 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useStore } from 'vuex'
+
+const store = useStore()
+
+const horses = computed(() => store.getters['horses/getAllHorses'])
+const races = computed(() => store.getters['races/allRaces'])
+const currentRound = computed(() => store.getters['races/currentRound'])
+const totalRounds = computed(() => store.getters['races/totalRounds'])
+</script>
 <template>
   <div class="race-scheduler">
     <div class="header">
@@ -64,18 +75,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { computed } from 'vue'
-import { useStore } from 'vuex'
-
-const store = useStore()
-
-const horses = computed(() => store.getters['horses/getAllHorses'])
-const races = computed(() => store.getters['races/allRaces'])
-const currentRound = computed(() => store.getters['races/currentRound'])
-const totalRounds = computed(() => store.getters['races/totalRounds'])
-</script>
 
 <style scoped>
 .race-scheduler {
@@ -297,5 +296,17 @@ const totalRounds = computed(() => store.getters['races/totalRounds'])
 .empty-state small {
   font-size: 12px;
   opacity: 0.7;
+}
+@media (max-width: 768px) {
+  .schedule-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 2px;
+  }
+
+  .race-item {
+    padding: 8px;
+  }
 }
 </style>

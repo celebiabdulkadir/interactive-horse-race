@@ -1,112 +1,5 @@
-<template>
-  <div class="race-results">
-    <div class="results-header">
-      <h3>🏆 Race Results</h3>
-      <div v-if="allResults.length > 0" class="results-count">
-        {{ allResults.length }}/{{ totalRounds }} completed
-      </div>
-    </div>
-
-    <!-- FIXED: Live Results Display -->
-    <div v-if="shouldShowLiveResults" class="live-results">
-      <div class="live-header">
-        <h4>🔴 LIVE: Round {{ currentRound }} Results</h4>
-        <div class="live-count">
-          {{ liveResults.length }}/{{ totalHorsesInCurrentRace }} finished
-        </div>
-      </div>
-      <div class="live-podium">
-        <div
-          v-for="result in liveResults"
-          :key="`live-${result.horse.id}`"
-          class="live-result-item"
-          :class="`position-${result.position}`"
-        >
-          <div class="live-position">{{ result.position }}</div>
-          <div class="horse-mini" :style="{ backgroundColor: result.horse.color }"></div>
-          <div class="live-horse-info">
-            <div class="horse-name-live">{{ result.horse.name }}</div>
-            <div class="time-live">{{ result.time.toFixed(2) }}s</div>
-          </div>
-          <div v-if="result.position === 1" class="winner-crown">👑</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Rest of the component remains the same -->
-    <div v-if="allResults.length > 0" class="results-container">
-      <!-- Completed races grid -->
-      <div class="results-grid" :class="{ 'with-live': isRacing && currentRaceResults }">
-        <div v-for="(results, raceIndex) in allResults" :key="raceIndex" class="race-result-card">
-          <div class="card-header">
-            <span class="round-badge">R{{ raceIndex + 1 }}</span>
-            <span class="distance">{{ getRaceDistance(raceIndex) }}m</span>
-          </div>
-
-          <!-- Show top 3 in podium style -->
-          <div class="podium-mini">
-            <div v-for="result in results.slice(0, 3)" :key="result.position" class="podium-item">
-              <div class="position-medal">{{ getMedal(result.position) }}</div>
-              <div class="horse-mini" :style="{ backgroundColor: result.horse.color }"></div>
-              <div class="result-info">
-                <div class="horse-name-mini">{{ result.horse.name }}</div>
-                <div class="time-mini">{{ result.time.toFixed(2) }}s</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Show all horses in expandable list -->
-          <details class="all-results" v-if="results.length > 3">
-            <summary class="show-all">Show all {{ results.length }} horses</summary>
-            <div class="full-results-list">
-              <div v-for="result in results.slice(3)" :key="result.position" class="result-row">
-                <span class="position-num">{{ result.position }}</span>
-                <div class="horse-mini" :style="{ backgroundColor: result.horse.color }"></div>
-                <span class="horse-name-small">{{ result.horse.name }}</span>
-                <span class="time-small">{{ result.time.toFixed(2) }}s</span>
-              </div>
-            </div>
-          </details>
-        </div>
-      </div>
-
-      <!-- Quick Stats -->
-      <div class="quick-stats">
-        <div class="stat">
-          <span class="stat-value">{{ getWinningHorses().length }}</span>
-          <span class="stat-label">Different Winners</span>
-        </div>
-        <div class="stat">
-          <span class="stat-value">{{ getMostSuccessfulHorse()?.wins || 0 }}</span>
-          <span class="stat-label">Most Wins</span>
-        </div>
-        <div class="stat">
-          <span class="stat-value">{{ getAverageTime() }}s</span>
-          <span class="stat-label">Avg Winner Time</span>
-        </div>
-        <div v-if="getMostSuccessfulHorse()" class="champion-mini">
-          <div
-            class="champion-color"
-            :style="{ backgroundColor: getMostSuccessfulHorse()?.horse.color }"
-          ></div>
-          <div class="champion-info-mini">
-            <div class="champion-name-mini">{{ getMostSuccessfulHorse()?.horse.name }}</div>
-            <div class="champion-wins">{{ getMostSuccessfulHorse()?.wins }} wins</div>
-          </div>
-          <div class="champion-crown">👑</div>
-        </div>
-      </div>
-    </div>
-
-    <div v-else-if="!shouldShowLiveResults" class="no-results">
-      <span class="empty-icon">🏁</span>
-      <span>Race results will appear here after completing races</span>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed } from 'vue'
 import { useStore } from 'vuex'
 import { RACE_DISTANCES, type Horse, type RaceResult } from '../store/types'
 
@@ -114,7 +7,6 @@ const store = useStore()
 
 const allResults = computed(() => store.getters['races/allResults'])
 const totalRounds = computed(() => store.getters['races/totalRounds'])
-const currentRound = computed(() => store.getters['races/currentRound'])
 const currentRace = computed(() => store.getters['races/currentRace'])
 const isRacing = computed(() => store.getters['races/isRacing'])
 
@@ -131,27 +23,10 @@ const liveResults = computed(() => {
   return results
 })
 
-const totalHorsesInCurrentRace = computed(() => {
-  return currentRace.value?.horses?.length || 0
-})
-
 const shouldShowLiveResults = computed(() => {
   const should = isShowingResults.value && liveResults.value.length > 0
   console.log('🔄 shouldShowLiveResults:', should)
   return should
-})
-
-// Watch for changes to debug
-watch(
-  liveResults,
-  (newResults) => {
-    console.log('👀 Live results changed:', newResults.length)
-  },
-  { deep: true },
-)
-
-watch(isShowingResults, (showing) => {
-  console.log('👀 Showing results changed:', showing)
 })
 
 // Get current race results for live display
@@ -218,6 +93,82 @@ const getAverageTime = (): string => {
   return average.toFixed(2)
 }
 </script>
+<template>
+  <div class="race-results">
+    <div class="results-header">
+      <h3>🏆 Race Results</h3>
+      <div v-if="allResults.length > 0" class="results-count">
+        {{ allResults.length }}/{{ totalRounds }} completed
+      </div>
+    </div>
+    <div v-if="allResults.length > 0" class="results-container">
+      <div class="results-grid" :class="{ 'with-live': isRacing && currentRaceResults }">
+        <div v-for="(results, raceIndex) in allResults" :key="raceIndex" class="race-result-card">
+          <div class="card-header">
+            <span class="round-badge">R{{ raceIndex + 1 }}</span>
+            <span class="distance">{{ getRaceDistance(raceIndex) }}m</span>
+          </div>
+
+          <div class="podium-mini">
+            <div v-for="result in results.slice(0, 3)" :key="result.position" class="podium-item">
+              <div class="position-medal">{{ getMedal(result.position) }}</div>
+              <div class="horse-mini" :style="{ backgroundColor: result.horse.color }"></div>
+              <div class="result-info">
+                <div class="horse-name-mini">{{ result.horse.name }}</div>
+                <div class="time-mini">{{ result.time.toFixed(2) }}s</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Show all horses in expandable list -->
+          <details class="all-results" v-if="results.length > 3">
+            <summary class="show-all">Show all {{ results.length }} horses</summary>
+            <div class="full-results-list">
+              <div v-for="result in results.slice(3)" :key="result.position" class="result-row">
+                <span class="position-num">{{ result.position }}</span>
+                <div class="horse-mini" :style="{ backgroundColor: result.horse.color }"></div>
+                <span class="horse-name-small">{{ result.horse.name }}</span>
+                <span class="time-small">{{ result.time.toFixed(2) }}s</span>
+              </div>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <!-- Quick Stats -->
+      <div class="quick-stats">
+        <div class="stat">
+          <span class="stat-value">{{ getWinningHorses().length }}</span>
+          <span class="stat-label">Different Winners</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">{{ getMostSuccessfulHorse()?.wins || 0 }}</span>
+          <span class="stat-label">Most Wins</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">{{ getAverageTime() }}s</span>
+          <span class="stat-label">Avg Winner Time</span>
+        </div>
+        <div v-if="getMostSuccessfulHorse()" class="champion-mini">
+          <div
+            class="champion-color"
+            :style="{ backgroundColor: getMostSuccessfulHorse()?.horse.color }"
+          ></div>
+          <div class="champion-info-mini">
+            <div class="champion-name-mini">{{ getMostSuccessfulHorse()?.horse.name }}</div>
+            <div class="champion-wins">{{ getMostSuccessfulHorse()?.wins }} wins</div>
+          </div>
+          <div class="champion-crown">👑</div>
+        </div>
+      </div>
+    </div>
+
+    <div v-else-if="!shouldShowLiveResults" class="no-results">
+      <span class="empty-icon">🏁</span>
+      <span>Race results will appear here after completing races</span>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .race-results {

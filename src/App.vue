@@ -174,7 +174,8 @@ body {
 .dashboard {
   flex: 1;
   display: grid;
-  grid-template-columns: 300px 1fr 280px;
+  /* Use proportional units instead of fixed pixels */
+  grid-template-columns: 1fr 3fr 1fr; /* Horses: Main: Schedule = 1:3:0.8 ratio */
   grid-template-rows: 1fr auto;
   grid-template-areas:
     'horses main schedule'
@@ -190,15 +191,18 @@ body {
   overflow-y: auto;
 }
 
+/* Add min/max constraints for better control */
 .horses-sidebar {
   grid-area: horses;
   border-left: none;
+  min-width: 180px; /* Minimum width */
 }
 
 .schedule-sidebar {
   grid-area: schedule;
   border-left: 1px solid #e1e8ed;
   border-right: none;
+  min-width: 160px; /* Minimum width */
 }
 
 .main-content {
@@ -211,14 +215,22 @@ body {
   grid-area: results;
   background: white;
   border-top: 1px solid #e1e8ed;
-  max-height: 300px;
+  height: 15vh; /* 15% of viewport height instead of fixed pixels */
+  min-height: 150px; /* Minimum height */
+  max-height: 250px; /* Maximum height */
   overflow-y: auto;
 }
 
-/* Responsive Design */
+/* Responsive breakpoints with proportional units */
+@media (max-width: 1400px) {
+  .dashboard {
+    grid-template-columns: 0.9fr 3fr 0.9fr; /* Slightly smaller sidebars */
+  }
+}
+
 @media (max-width: 1200px) {
   .dashboard {
-    grid-template-columns: 250px 1fr 250px;
+    grid-template-columns: 0.8fr 3fr 0.8fr; /* Even smaller sidebars */
   }
 }
 
@@ -236,6 +248,14 @@ body {
   .sidebar {
     border-right: none;
     border-bottom: 1px solid #e1e8ed;
+    height: 12vh; /* 12% of viewport height */
+    min-height: 100px;
+    max-height: 180px;
+  }
+
+  .results-section {
+    height: 20vh; /* 20% on mobile */
+    min-height: 120px;
     max-height: 200px;
   }
 
@@ -246,6 +266,13 @@ body {
 
   .app-header h1 {
     font-size: 1.5em;
+  }
+}
+
+/* Extra large screens (4K, ultrawide monitors) */
+@media (min-width: 1920px) {
+  .dashboard {
+    grid-template-columns: 1fr 4fr 1fr; /* Even more space for race track */
   }
 }
 

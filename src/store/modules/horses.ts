@@ -70,8 +70,12 @@ const horsesModule: Module<HorsesState, RootState> = {
           speed: 0,
         }
 
-        // Calculate speed based on condition (higher condition = higher speed potential)
-        horse.speed = (horse.condition / 100) * (0.8 + Math.random() * 0.4) // 0.8-1.2 multiplier
+        // Calculate speed with narrower range for competitive racing
+        // Base speed (80%) + condition bonus (20%) + small random factor
+        const baseSpeed = 0.8 // All horses get 80% base speed
+        const conditionBonus = (horse.condition / 100) * 0.2 // Up to 20% bonus from condition
+        const randomFactor = 0.9 + Math.random() * 0.2 // 90%-110% variation
+        horse.speed = (baseSpeed + conditionBonus) * randomFactor
 
         horses.push(horse)
       }
