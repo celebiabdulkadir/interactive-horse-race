@@ -177,13 +177,26 @@ const racesModule: Module<RacesState, RootState> = {
 
         // Configure each horse's racing parameters ONCE
         race.horses.forEach((horse) => {
-          const horseSpeed = horse.speed || horse.condition / 100
-          const baseSpeed = horseSpeed * (0.8 + Math.random() * 0.4)
+          // Distance factor: Longer races need more speed to finish in reasonable time
+          const distanceFactor = raceDistance / 1000 // Normalize to 1km baseline
+
+          // Calculate target race duration (30-60 seconds depending on distance)
+          const targetDuration = 30 + distanceFactor * 30 // 30s for 1km, 60s for 2km
+
+          // Calculate required speed to finish in target duration
+          const requiredSpeed = raceDistance / targetDuration
+
+          // Apply horse's condition to required speed
+          const adjustedSpeed = requiredSpeed * (0.8 + (horse.condition / 100) * 0.4)
+
+          // Add 5% randomization (±2.5% variation)
+          const randomVariation = 0.975 + Math.random() * 0.05 // 97.5% - 102.5%
+          const finalSpeed = adjustedSpeed * randomVariation
 
           horseConfigs.set(horse.id, {
-            speed: baseSpeed,
+            speed: finalSpeed,
             startDelay: Math.random() * 300,
-            speedVariation: Math.random() * 0.1 + 0.95, // 0.95-1.05 variation
+            // REMOVED: speedVariation since we now have proper randomization above
           })
 
           lastPositions.set(horse.id, 0) // Initialize position
@@ -209,12 +222,11 @@ const racesModule: Module<RacesState, RootState> = {
 
             const adjustedElapsed = elapsed - config.startDelay
 
-            // FIXED: Smooth, consistent movement - no back/forward jumping
-            const baseDistance = (adjustedElapsed / 1000) * config.speed * 80
+            // IMPROVED: Distance-based movement calculation
+            const baseDistance = (adjustedElapsed / 1000) * config.speed // Direct speed in m/s
 
-            // Apply small, smooth variation (not sine wave that causes back/forth)
-            const smoothVariation = config.speedVariation
-            const newPosition = Math.min(raceDistance, baseDistance * smoothVariation)
+            // No additional variation needed since speed is already randomized
+            const newPosition = Math.min(raceDistance, baseDistance)
 
             // CRITICAL: Never go backwards!
             const finalPosition = Math.max(lastPosition, newPosition)

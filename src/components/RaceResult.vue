@@ -29,7 +29,6 @@ const shouldShowLiveResults = computed(() => {
   return should
 })
 
-// Get current race results for live display
 const currentRaceResults = computed(() => {
   if (!currentRace.value || !isRacing.value) return null
   return currentRace.value.results || []

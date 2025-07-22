@@ -50,7 +50,7 @@ const generateSchedule = () => {
 <template>
   <div id="app">
     <header class="app-header">
-      <h1>🐎 Interactive Horse Racing Game</h1>
+      <h3>🐎 Interactive Horse Racing Game</h3>
       <div class="header-controls">
         <button @click="generateHorses" class="btn btn-primary" :disabled="isRacing">
           Generate Horses

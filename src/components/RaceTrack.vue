@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onMounted, watch } from 'vue'
 import { computed } from 'vue'
 import { useStore } from 'vuex'
 
@@ -11,12 +12,22 @@ const isAllRacesFinished = computed(() => store.getters['races/isAllRacesFinishe
 const isRacing = computed(() => store.getters['races/isRacing'])
 const isScheduleGenerated = computed(() => store.getters['races/isScheduleGenerated'])
 
-// Calculate track height based on number of horses
+const numHorses = computed(() => currentRace.value?.horses.length || 10)
+
+onMounted(() => {
+  document.documentElement.style.setProperty('--num-horses', numHorses.value)
+})
+watch(numHorses, (val) => {
+  document.documentElement.style.setProperty('--num-horses', val)
+})
+
+// Calculate responsive track height based on viewport
 const getTrackHeight = () => {
-  if (!currentRace.value) return 400
+  if (!currentRace.value) return '60vh'
   const numberOfHorses = currentRace.value.horses.length
-  // 40px per lane + 15px top padding + 15px bottom padding
-  return numberOfHorses * 40 + 30
+  // Use viewport height: 60vh minimum, scales up on larger screens
+  const baseHeight = Math.max(60, Math.min(80, 60 + (numberOfHorses - 5) * 2))
+  return `${baseHeight}vh`
 }
 
 const startRace = async () => {
@@ -63,31 +74,32 @@ const resetAll = () => {
       </div>
     </div>
 
-    <div v-if="currentRace" class="track-container">
-      <div class="track" :style="{ height: `${getTrackHeight()}px` }">
+    <div v-if="currentRace" class="track-container" :style="{ height: getTrackHeight() }">
+      <div class="track">
         <div class="finish-line"></div>
-        <div
-          v-for="(horse, index) in currentRace.horses"
-          :key="horse.id"
-          class="lane"
-          :style="{ top: `${index * 40 + 15}px` }"
-        >
-          <div class="lane-info">
-            <div class="lane-number">{{ index + 1 }}</div>
-            <div class="horse-name">{{ horse.name }}</div>
-          </div>
+        <div class="lanes-container">
           <div
-            class="horse"
-            :class="{
-              running: isRacing, // Keep running as long as race is active
-              finished: horse.position >= currentRace.distance,
-            }"
+            v-for="(horse, index) in currentRace.horses"
+            :key="horse.id"
+            class="lane"
             :style="{
               '--horse-progress': Math.min(95, (horse.position / currentRace.distance) * 95),
               '--horse-color': horse.color,
             }"
           >
-            🐎
+            <div class="lane-info">
+              <div class="lane-number">{{ index + 1 }}</div>
+              <div class="horse-name">{{ horse.name }}</div>
+            </div>
+            <div
+              class="horse"
+              :class="{ running: isRacing && currentRace.status === 'running' }"
+              :style="{
+                left: `calc(${Math.min(95, (horse.position / currentRace.distance) * 95)}%)`,
+              }"
+            >
+              <span class="horse-circle" :style="{ backgroundColor: horse.color }">🐎</span>
+            </div>
           </div>
         </div>
       </div>
@@ -121,7 +133,7 @@ const resetAll = () => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
-  padding: 5px;
+  padding: 6px;
   background: white;
   border-radius: 10px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -220,27 +232,40 @@ const resetAll = () => {
   box-shadow: none;
 }
 
-/* FIXED: Track container with proper scrolling */
+/* FIXED: Responsive track container */
 .track-container {
   flex: 1;
   background: white;
   border-radius: 10px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  overflow-y: auto; /* Allow vertical scrolling if needed */
-  overflow-x: hidden; /* Prevent horizontal scrolling */
-  min-height: 0; /* Allow flex item to shrink */
+  overflow: hidden; /* Remove scrolling - everything fits */
+  min-height: 0;
   box-sizing: border-box;
+  /* Height is now controlled by JavaScript */
+  height: 70vh; /* Responsive: 70% of viewport height */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .track {
   position: relative;
   width: 100%;
-  /* Height is now dynamic based on number of horses */
-  min-height: 200px;
-  background: linear-gradient(90deg, #2ecc71 0%, #27ae60 70%, #f1c40f 70%, #f39c12 100%);
+  height: 100%; /* Fill container */
+  background: linear-gradient(
+    90deg,
+    #27ae60 0%,
+    /* Start: Green */ #2ecc71 30%,
+    /* Track: Light Green */ #2ecc71 90%,
+    /* Track continues */ #f1c40f 95%,
+    /* Finish zone: Yellow */ #f39c12 100% /* Finish line: Orange */
+  );
   border-radius: 8px;
   border: 3px solid #27ae60;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .finish-line {
@@ -253,14 +278,24 @@ const resetAll = () => {
   z-index: 10;
 }
 
-/* FIXED: Lane sizing and positioning */
-.lane {
-  position: absolute;
+/* NEW: Proportional lanes using CSS Grid */
+.lanes-container {
+  display: grid;
+  grid-template-rows: repeat(var(--num-horses, 10), 1fr);
+  height: 100%;
   width: 100%;
-  height: 35px; /* Slightly smaller to fit more lanes */
-  border-bottom: 1px dashed rgba(255, 255, 255, 0.4);
+  position: relative;
+}
+
+.lane {
   display: flex;
   align-items: center;
+  position: relative;
+  width: 100%;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.4);
+  min-height: 0;
+  box-sizing: border-box;
+  padding-left: 40px;
 }
 
 .lane:last-child {
@@ -297,35 +332,25 @@ const resetAll = () => {
   font-size: 10px;
   font-weight: 600;
   color: #2c3e50;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  white-space: nowrap;
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-/* FIXED: Smooth horse movement without flickering */
 .horse {
   position: absolute;
   left: calc(var(--horse-progress) * 1%);
-  width: 28px; /* Slightly smaller */
-  height: 28px;
-  border-radius: 50%;
+  width: clamp(24px, 3vw, 32px);
+  height: clamp(24px, 3vw, 32px);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px; /* Slightly smaller */
   z-index: 8;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
-  border: 2px solid white;
-  background-color: var(--horse-color);
-
-  /* REMOVED: All transitions that cause conflicts */
   transform: translateZ(0);
   will-change: left;
-  /* NO transition on left property! */
+  font-size: 1.5em;
+  background: none;
+  border: none;
 }
 
+/* Responsive horse sizing that scales with lane height */
 /* Running animation */
 .horse.running {
   animation: gallop 1s ease-in-out infinite;
@@ -358,6 +383,9 @@ const resetAll = () => {
   }
 }
 
+/* Responsive text sizing */
+/* Responsive text sizing */
+
 .no-race {
   flex: 1;
   display: flex;
@@ -389,25 +417,34 @@ const resetAll = () => {
   font-size: 16px;
 }
 
-/* Responsive adjustments for smaller screens */
-@media (max-width: 968px) {
+/* Media queries for different screen sizes */
+@media (min-width: 1200px) {
   .track-container {
-    max-height: 350px; /* Limit height on mobile */
+    /* Larger screens get more space */
+    height: 75vh !important;
   }
+}
 
-  .lane {
-    height: 30px; /* Even smaller on mobile */
+@media (max-width: 768px) {
+  .track-container {
+    /* Smaller screens get less space */
+    height: 50vh !important;
   }
+}
 
-  .horse {
-    width: 24px;
-    height: 24px;
-    font-size: 14px;
-  }
+/* Responsive: set number of rows dynamically */
+:root {
+  --num-horses: 10;
+}
 
-  .horse-name {
-    font-size: 9px;
-    max-width: 80px;
-  }
+.horse-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1.5em;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 </style>
