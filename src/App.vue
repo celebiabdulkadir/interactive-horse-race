@@ -288,7 +288,6 @@ body {
   background: rgba(0, 0, 0, 0.4);
 }
 
-/* NEW: Race Status Indicator */
 .race-status-indicator {
   display: flex;
   align-items: center;
