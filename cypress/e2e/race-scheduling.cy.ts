@@ -231,9 +231,7 @@ describe('Race Scheduling & Management', () => {
     cy.get('.schedule-sidebar').should('contain', '6/6')
     cy.get('.schedule-item').last().should('have.class', 'finished')
 
-    // Verify that no more races can be started (no Start Race button should be available)
-    cy.get('.main-content').should('not.contain', 'Start Race')
-
+    cy.get('.main-content').contains('Start Race').should('be.disabled')
     // Verify that the Reset All button is available (since all races are finished)
     cy.get('.main-content').should('contain', 'Reset All')
   })
