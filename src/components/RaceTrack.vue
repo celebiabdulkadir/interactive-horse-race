@@ -1,18 +1,37 @@
 <script setup lang="ts">
-import { onMounted, watch } from 'vue'
+import { onMounted, watch, ref } from 'vue'
 import { computed } from 'vue'
 import { useStore } from 'vuex'
+import HorseRace from './HorseRace.vue'
+import Countdown from './Countdown.vue'
+import ResultModal from './ResultModal.vue'
 
 const store = useStore()
-
+const showResultModal = ref(false)
 const currentRace = computed(() => store.getters['races/currentRace'])
 const canStartRace = computed(() => store.getters['races/canStartRace'])
 const canMoveToNextRound = computed(() => store.getters['races/canMoveToNextRound'])
 const isAllRacesFinished = computed(() => store.getters['races/isAllRacesFinished'])
 const isRacing = computed(() => store.getters['races/isRacing'])
 const isScheduleGenerated = computed(() => store.getters['races/isScheduleGenerated'])
+const currentRaceStatus = computed(() => currentRace.value?.status)
 
 const numHorses = computed(() => currentRace.value?.horses.length || 10)
+
+const laneHeightPx = computed(() => {
+  if (!currentRace.value) return 0
+  // Use the same logic as getTrackHeight, but in px
+  const numberOfHorses = currentRace.value.horses.length
+  // Calculate the track height in vh (as a number)
+  const baseHeight = Math.max(60, Math.min(80, 60 + (numberOfHorses - 5) * 2))
+  // Convert vh to px
+  const vh = window.innerHeight / 100
+  const trackHeightPx = baseHeight * vh
+  return trackHeightPx / numberOfHorses
+})
+
+const countdown = ref(0)
+const countdownActive = ref(false)
 
 onMounted(() => {
   document.documentElement.style.setProperty('--num-horses', numHorses.value)
@@ -31,12 +50,46 @@ const getTrackHeight = () => {
 }
 
 const startRace = async () => {
+  if (isRacing.value || countdownActive.value) return
+  countdown.value = 3 // 3-second countdown
+  countdownActive.value = true
+  playCountdownBeep() // Play initial beep
+
+  const interval = setInterval(() => {
+    countdown.value--
+    if (countdown.value > 0) {
+      playCountdownBeep() // Play beep for each tick
+    }
+    if (countdown.value === 0) {
+      clearInterval(interval)
+      playStartSound() // Play start sound
+      countdownActive.value = false
+      actuallyStartRace()
+    }
+  }, 1000)
+}
+
+const actuallyStartRace = async () => {
   try {
     await store.dispatch('races/startCurrentRace')
   } catch (error) {
     console.error('Failed to start race:', error)
-    // Show user-friendly error message
   }
+}
+
+function playCountdownBeep() {
+  const audio = new Audio('/src/assets/beep.mp3')
+  audio.play()
+}
+function playStartSound() {
+  const audio = new Audio('/src/assets/start.mp3')
+  audio.play()
+}
+
+function playFinishSound() {
+  debugger
+  const audio = new Audio('/src/assets/end.mp3')
+  audio.play()
 }
 
 const nextRound = () => {
@@ -47,6 +100,17 @@ const nextRound = () => {
 const resetAll = () => {
   store.dispatch('races/resetAll')
 }
+
+const closeResultModal = () => {
+  showResultModal.value = false
+}
+
+watch(currentRaceStatus, () => {
+  if (currentRaceStatus.value === 'finished') {
+    playFinishSound()
+    showResultModal.value = true
+  }
+})
 </script>
 <template>
   <div class="race-track">
@@ -62,8 +126,12 @@ const resetAll = () => {
       </div>
 
       <div class="controls">
-        <button @click="startRace" class="btn btn-race" :disabled="!canStartRace">
-          {{ isRacing ? 'Racing...' : 'Start Race' }}
+        <button
+          @click="startRace"
+          class="btn btn-race"
+          :disabled="!canStartRace || countdownActive"
+        >
+          {{ isRacing ? 'Racing...' : countdownActive ? countdown : 'Start Race' }}
         </button>
 
         <button v-if="canMoveToNextRound" @click="nextRound" class="btn btn-next">
@@ -73,6 +141,8 @@ const resetAll = () => {
         <button v-if="isAllRacesFinished" @click="resetAll" class="btn btn-reset">Reset All</button>
       </div>
     </div>
+
+    <Countdown :countdown="countdown" :countdownActive="countdownActive" />
 
     <div v-if="currentRace" class="track-container" :style="{ height: getTrackHeight() }">
       <div class="track">
@@ -85,6 +155,7 @@ const resetAll = () => {
             :style="{
               '--horse-progress': Math.min(95, (horse.position / currentRace.distance) * 95),
               '--horse-color': horse.color,
+              '--lane-height': laneHeightPx + 'px',
             }"
           >
             <div class="lane-info">
@@ -100,7 +171,7 @@ const resetAll = () => {
                 left: `calc(${Math.min(95, (horse.position / currentRace.distance) * 95)}%)`,
               }"
             >
-              <span class="horse-circle" :style="{ backgroundColor: horse.color }">🐎</span>
+              <HorseRace :horse="horse.color" />
             </div>
           </div>
         </div>
@@ -110,7 +181,7 @@ const resetAll = () => {
     <div v-else class="no-race">
       <div class="empty-state">
         <div class="empty-icon">🏁</div>
-        <h3 v-if="!isScheduleGenerated">Ready to Race!</h3>
+        <h3 v-if="!isScheduleGenerated">Readty to Race!</h3>
         <h3 v-else-if="isAllRacesFinished">🎉 All Races Completed!</h3>
         <h3 v-else>Select a Race</h3>
         <p v-if="!isScheduleGenerated">Generate horses and schedule to start racing</p>
@@ -118,6 +189,14 @@ const resetAll = () => {
         <p v-else>Click "Start Race" to begin the current round</p>
       </div>
     </div>
+
+    <ResultModal
+      :showResultModal="showResultModal"
+      :results="currentRace?.results || []"
+      @close="closeResultModal"
+      :distance="currentRace?.distance"
+      :roundNumber="currentRace?.round"
+    />
   </div>
 </template>
 
@@ -298,6 +377,7 @@ const resetAll = () => {
   min-height: 0;
   box-sizing: border-box;
   padding-left: 40px;
+  height: 100%;
 }
 
 .lane:last-child {
@@ -339,8 +419,8 @@ const resetAll = () => {
 .horse {
   position: absolute;
   left: calc(var(--horse-progress) * 1%);
-  width: clamp(24px, 3vw, 32px);
-  height: clamp(24px, 3vw, 32px);
+  width: calc(var(--lane-height) * 0.7);
+  height: calc(var(--lane-height) * 0.7);
   display: flex;
   align-items: center;
   justify-content: center;

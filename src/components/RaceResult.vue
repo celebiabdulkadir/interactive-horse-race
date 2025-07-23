@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useStore } from 'vuex'
 import { RACE_DISTANCES, type Horse, type RaceResult } from '../store/types'
-
+import RaceResultCard from './RaceResultCard.vue'
 const store = useStore()
 
 const allResults = computed(() => store.getters['races/allResults'])
@@ -36,19 +36,6 @@ const currentRaceResults = computed(() => {
 
 const getRaceDistance = (raceIndex: number): number => {
   return RACE_DISTANCES[raceIndex] || 0
-}
-
-const getMedal = (position: number): string => {
-  switch (position) {
-    case 1:
-      return '🥇'
-    case 2:
-      return '🥈'
-    case 3:
-      return '🥉'
-    default:
-      return ''
-  }
 }
 
 const getWinningHorses = () => {
@@ -103,34 +90,12 @@ const getAverageTime = (): string => {
     <div v-if="allResults.length > 0" class="results-container">
       <div class="results-grid" :class="{ 'with-live': isRacing && currentRaceResults }">
         <div v-for="(results, raceIndex) in allResults" :key="raceIndex" class="race-result-card">
-          <div class="card-header">
-            <span class="round-badge">R{{ raceIndex + 1 }}</span>
-            <span class="distance">{{ getRaceDistance(raceIndex) }}m</span>
-          </div>
-
-          <div class="podium-mini">
-            <div v-for="result in results.slice(0, 3)" :key="result.position" class="podium-item">
-              <div class="position-medal">{{ getMedal(result.position) }}</div>
-              <div class="horse-mini" :style="{ backgroundColor: result.horse.color }"></div>
-              <div class="result-info">
-                <div class="horse-name-mini">{{ result.horse.name }}</div>
-                <div class="time-mini">{{ result.time.toFixed(2) }}s</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Show all horses in expandable list -->
-          <details class="all-results" v-if="results.length > 3">
-            <summary class="show-all">Show all {{ results.length }} horses</summary>
-            <div class="full-results-list">
-              <div v-for="result in results.slice(3)" :key="result.position" class="result-row">
-                <span class="position-num">{{ result.position }}</span>
-                <div class="horse-mini" :style="{ backgroundColor: result.horse.color }"></div>
-                <span class="horse-name-small">{{ result.horse.name }}</span>
-                <span class="time-small">{{ result.time.toFixed(2) }}s</span>
-              </div>
-            </div>
-          </details>
+          <RaceResultCard
+            :key="raceIndex"
+            :results="results"
+            :roundNumber="raceIndex + 1"
+            :distance="getRaceDistance(raceIndex)"
+          />
         </div>
       </div>
 
