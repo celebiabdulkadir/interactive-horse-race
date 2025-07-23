@@ -256,7 +256,6 @@ body {
   .results-section {
     height: 20vh; /* 20% on mobile */
     min-height: 120px;
-    max-height: 200px;
   }
 
   .app-header {

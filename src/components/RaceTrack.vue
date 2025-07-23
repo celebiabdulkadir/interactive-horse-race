@@ -78,17 +78,17 @@ const actuallyStartRace = async () => {
 }
 
 function playCountdownBeep() {
-  const audio = new Audio('/src/assets/beep.mp3')
+  const audio = new Audio('/beep.mp3')
   audio.play()
 }
 function playStartSound() {
-  const audio = new Audio('/src/assets/start.mp3')
+  const audio = new Audio('/start.mp3')
   audio.play()
 }
 
 function playFinishSound() {
   debugger
-  const audio = new Audio('/src/assets/end.mp3')
+  const audio = new Audio('/end.mp3')
   audio.play()
 }
 
