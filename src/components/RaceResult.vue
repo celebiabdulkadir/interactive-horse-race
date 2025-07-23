@@ -73,6 +73,9 @@ const getAverageTime = (): string => {
   const winnerTimes = allResults.value
     .map((results: RaceResult[]) => results[0]?.time)
     .filter(Boolean)
+
+  if (winnerTimes.length === 0) return '0.00'
+
   const average =
     winnerTimes.reduce((sum: number, time: number) => sum + time, 0) / winnerTimes.length
 
