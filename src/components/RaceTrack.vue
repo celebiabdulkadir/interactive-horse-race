@@ -312,17 +312,15 @@ watch(currentRaceStatus, () => {
   box-shadow: none;
 }
 
-/* FIXED: Responsive track container */
 .track-container {
   flex: 1;
   background: white;
   border-radius: 10px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  overflow: hidden; /* Remove scrolling - everything fits */
+  overflow: hidden;
   min-height: 0;
   box-sizing: border-box;
-  /* Height is now controlled by JavaScript */
-  height: 70vh; /* Responsive: 70% of viewport height */
+  height: 70vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -331,7 +329,7 @@ watch(currentRaceStatus, () => {
 .track {
   position: relative;
   width: 100%;
-  height: 100%; /* Fill container */
+  height: 100%;
   background: linear-gradient(
     90deg,
     #27ae60 0%,
@@ -358,7 +356,6 @@ watch(currentRaceStatus, () => {
   z-index: 10;
 }
 
-/* NEW: Proportional lanes using CSS Grid */
 .lanes-container {
   display: grid;
   grid-template-rows: repeat(var(--num-horses, 10), 1fr);
@@ -431,13 +428,10 @@ watch(currentRaceStatus, () => {
   border: none;
 }
 
-/* Responsive horse sizing that scales with lane height */
-/* Running animation */
 .horse.running {
   animation: gallop 1s ease-in-out infinite;
 }
 
-/* Simplified animation to prevent jumpiness */
 @keyframes gallop {
   0%,
   100% {
@@ -463,9 +457,6 @@ watch(currentRaceStatus, () => {
     transform: translateZ(0) scale(1) rotate(0deg);
   }
 }
-
-/* Responsive text sizing */
-/* Responsive text sizing */
 
 .no-race {
   flex: 1;
@@ -498,29 +489,24 @@ watch(currentRaceStatus, () => {
   font-size: 16px;
 }
 
-/* Media queries for different screen sizes */
 @media (min-width: 1200px) {
   .track-container {
-    /* Larger screens get more space */
     height: 75vh !important;
   }
 }
 
 @media (max-width: 768px) {
   .track-container {
-    /* Smaller screens get less space */
     height: 50vh !important;
   }
   .horse {
-    transform: scale(0.7); /* Make horses smaller on mobile */
+    transform: scale(0.7);
   }
 
-  /* FIXED: Make sure running animation also scales down on mobile */
   .horse.running {
     animation: gallop-mobile 1s ease-in-out infinite;
   }
 
-  /* Also fix the finished animation for mobile */
   .horse.finished {
     animation: celebrate-mobile 1s ease-out;
   }
@@ -535,7 +521,6 @@ watch(currentRaceStatus, () => {
     font-size: 9px;
   }
 
-  /* Reduce track header size on mobile */
   .track-header {
     padding: 4px;
     margin-bottom: 5px;
@@ -546,7 +531,6 @@ watch(currentRaceStatus, () => {
   }
 }
 
-/* Mobile-specific animations that maintain the scale */
 @keyframes gallop-mobile {
   0%,
   100% {
@@ -569,7 +553,6 @@ watch(currentRaceStatus, () => {
   }
 }
 
-/* Responsive: set number of rows dynamically */
 :root {
   --num-horses: 10;
 }

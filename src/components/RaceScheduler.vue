@@ -50,7 +50,6 @@ const totalRounds = computed(() => store.getters['races/totalRounds'])
           </div>
         </div>
 
-        <!-- NEW: Horse names list -->
         <div class="horses-list">
           <div class="horses-header">
             <span class="horses-title">Horses:</span>
@@ -135,7 +134,6 @@ const totalRounds = computed(() => store.getters['races/totalRounds'])
   font-size: 11px;
 }
 
-/* NEW: Clean list format */
 .schedule-list {
   display: flex;
   flex-direction: column;
@@ -328,7 +326,6 @@ const totalRounds = computed(() => store.getters['races/totalRounds'])
   color: #bdc3c7;
 }
 
-/* NEW: Horse names display */
 .horses-list {
   margin: 8px 0;
   padding: 8px;
@@ -407,7 +404,6 @@ const totalRounds = computed(() => store.getters['races/totalRounds'])
   text-align: center;
 }
 
-/* Responsive adjustments */
 @media (max-width: 1400px) {
   .horses-grid {
     grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
@@ -418,7 +414,6 @@ const totalRounds = computed(() => store.getters['races/totalRounds'])
   }
 }
 
-/* Scrollbar styling for horses grid */
 .horses-grid::-webkit-scrollbar {
   width: 4px;
 }

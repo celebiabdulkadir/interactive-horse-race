@@ -11,14 +11,12 @@ const store = useStore()
 const horses = computed(() => store.getters['horses/getAllHorses'])
 const isRacing = computed(() => store.getters['races/isRacing'])
 
-// Simple race protection
 const handleBeforeUnload = (event: BeforeUnloadEvent) => {
   if (isRacing.value) {
     event.preventDefault()
   }
 }
 
-// Watch for race status changes
 watch(isRacing, (racing) => {
   if (racing) {
     window.addEventListener('beforeunload', handleBeforeUnload)
@@ -29,7 +27,6 @@ watch(isRacing, (racing) => {
   }
 })
 
-// Cleanup
 onUnmounted(() => {
   window.removeEventListener('beforeunload', handleBeforeUnload)
 })
@@ -63,7 +60,6 @@ const generateSchedule = () => {
           Generate Schedule
         </button>
 
-        <!-- Race Status Indicator -->
         <div v-if="isRacing" class="race-status-indicator">
           <div class="pulse-dot"></div>
           <span>Race in Progress</span>
@@ -72,22 +68,18 @@ const generateSchedule = () => {
     </header>
 
     <main class="dashboard">
-      <!-- Left Sidebar - Horses -->
       <aside class="sidebar horses-sidebar">
         <HorseGenerator />
       </aside>
 
-      <!-- Main Content - Race Track -->
       <section class="main-content">
         <RaceTrack />
       </section>
 
-      <!-- Right Sidebar - Race Schedule -->
       <aside class="sidebar schedule-sidebar">
         <RaceScheduler />
       </aside>
 
-      <!-- Bottom Section - Results -->
       <section class="results-section">
         <RaceResult />
       </section>
@@ -96,7 +88,6 @@ const generateSchedule = () => {
 </template>
 
 <style>
-/* Global Styles */
 * {
   margin: 0;
   padding: 0;
@@ -174,8 +165,7 @@ body {
 .dashboard {
   flex: 1;
   display: grid;
-  /* Use proportional units instead of fixed pixels */
-  grid-template-columns: 1fr 3fr 1fr; /* Horses: Main: Schedule = 1:3:0.8 ratio */
+  grid-template-columns: 1fr 3fr 1fr;
   grid-template-rows: 1fr auto;
   grid-template-areas:
     'horses main schedule'
@@ -191,18 +181,17 @@ body {
   overflow-y: auto;
 }
 
-/* Add min/max constraints for better control */
 .horses-sidebar {
   grid-area: horses;
   border-left: none;
-  min-width: 180px; /* Minimum width */
+  min-width: 180px;
 }
 
 .schedule-sidebar {
   grid-area: schedule;
   border-left: 1px solid #e1e8ed;
   border-right: none;
-  min-width: 160px; /* Minimum width */
+  min-width: 160px;
 }
 
 .main-content {
@@ -215,22 +204,21 @@ body {
   grid-area: results;
   background: white;
   border-top: 1px solid #e1e8ed;
-  height: 15vh; /* 15% of viewport height instead of fixed pixels */
-  min-height: 150px; /* Minimum height */
-  max-height: 250px; /* Maximum height */
+  height: 15vh;
+  min-height: 150px;
+  max-height: 250px;
   overflow-y: auto;
 }
 
-/* Responsive breakpoints with proportional units */
 @media (max-width: 1400px) {
   .dashboard {
-    grid-template-columns: 0.9fr 3fr 0.9fr; /* Slightly smaller sidebars */
+    grid-template-columns: 0.9fr 3fr 0.9fr;
   }
 }
 
 @media (max-width: 1200px) {
   .dashboard {
-    grid-template-columns: 0.8fr 3fr 0.8fr; /* Even smaller sidebars */
+    grid-template-columns: 0.8fr 3fr 0.8fr;
   }
 }
 
@@ -239,10 +227,10 @@ body {
     grid-template-columns: 1fr;
     grid-template-rows: auto auto 1fr auto;
     grid-template-areas:
-      'main' /* Race track first - most important */
-      'schedule' /* Schedule second */
-      'horses' /* Horses third */
-      'results'; /* Results last */
+      'main'
+      'schedule'
+      'horses'
+      'results';
   }
 
   .sidebar {
@@ -250,7 +238,6 @@ body {
     max-height: 200px;
   }
 
-  /* Make race track take more space on mobile */
   .main-content {
     min-height: 50vh;
   }
@@ -258,13 +245,13 @@ body {
   .sidebar {
     border-right: none;
     border-bottom: 1px solid #e1e8ed;
-    height: 12vh; /* 12% of viewport height */
+    height: 12vh;
     min-height: 100px;
     max-height: 180px;
   }
 
   .results-section {
-    height: 20vh; /* 20% on mobile */
+    height: 20vh;
     min-height: 120px;
   }
 
@@ -278,14 +265,12 @@ body {
   }
 }
 
-/* Extra large screens (4K, ultrawide monitors) */
 @media (min-width: 1920px) {
   .dashboard {
-    grid-template-columns: 1fr 4fr 1fr; /* Even more space for race track */
+    grid-template-columns: 1fr 4fr 1fr;
   }
 }
 
-/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
 }

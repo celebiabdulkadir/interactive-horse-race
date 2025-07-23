@@ -10,7 +10,6 @@ const totalRounds = computed(() => store.getters['races/totalRounds'])
 const currentRace = computed(() => store.getters['races/currentRace'])
 const isRacing = computed(() => store.getters['races/isRacing'])
 
-// FIXED: Force reactive updates
 const isShowingResults = computed(() => {
   const result = store.getters['races/isShowingResults']
   return result
@@ -99,7 +98,6 @@ const getAverageTime = (): string => {
         </div>
       </div>
 
-      <!-- Quick Stats -->
       <div class="quick-stats">
         <div class="stat">
           <span class="stat-value">{{ getWinningHorses().length }}</span>
@@ -341,7 +339,6 @@ const getAverageTime = (): string => {
   font-size: 24px;
 }
 
-/* NEW: Expandable results for all horses */
 .all-results {
   margin-top: 10px;
   border-top: 1px solid #e1e8ed;
@@ -393,7 +390,6 @@ const getAverageTime = (): string => {
   color: #e74c3c;
 }
 
-/* NEW: Live Results Styles */
 .live-results {
   background: linear-gradient(135deg, #ff6b6b, #ee5a24);
   color: white;

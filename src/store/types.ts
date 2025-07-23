@@ -2,9 +2,9 @@ export interface Horse {
   id: number
   name: string
   color: string
-  condition: number // 1-100
-  position: number // For animation
-  speed: number // Calculated based on condition
+  condition: number
+  position: number
+  speed: number
 }
 
 export interface Race {
@@ -15,13 +15,13 @@ export interface Race {
   results: RaceResult[]
   status: 'pending' | 'running' | 'finished'
   winner?: Horse
-  showingResults?: boolean // New flag
+  showingResults?: boolean
 }
 
 export interface RaceResult {
   position: number
   horse: Horse
-  time: number // in seconds
+  time: number
 }
 
 export interface RaceSchedule {

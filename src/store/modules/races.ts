@@ -40,12 +40,10 @@ const racesModule: Module<RacesState, RootState> = {
       }
     },
 
-    // NEW: Mark race as showing results but keep animation running
     FIRST_HORSE_FINISHED(state) {
       const currentRace = state.schedule.races[state.schedule.currentRound]
       if (currentRace) {
-        currentRace.showingResults = true // New flag for showing results
-        // DON'T change status to 'finished' yet - keep it 'running'
+        currentRace.showingResults = true
       }
     },
 
@@ -54,7 +52,7 @@ const racesModule: Module<RacesState, RootState> = {
       const currentRace = state.schedule.races[state.schedule.currentRound]
       if (currentRace) {
         currentRace.results = results
-        currentRace.status = 'finished' // NOW we can mark as finished
+        currentRace.status = 'finished'
         currentRace.winner = results[0]?.horse
         currentRace.showingResults = true
         if (!state.allResults[state.schedule.currentRound]) {
@@ -63,7 +61,7 @@ const racesModule: Module<RacesState, RootState> = {
           state.allResults[state.schedule.currentRound] = results
         }
       }
-      state.isRacing = false // NOW we can stop racing
+      state.isRacing = false
     },
 
     NEXT_ROUND(state) {
@@ -82,7 +80,6 @@ const racesModule: Module<RacesState, RootState> = {
     UPDATE_RACE_RESULTS(state, { raceIndex, results }) {
       if (state.schedule.races[raceIndex]) {
         state.schedule.races[raceIndex].results = results
-        // Update the overall results array
         if (state.allResults[raceIndex]) {
           state.allResults[raceIndex] = results
         } else {
@@ -95,12 +92,10 @@ const racesModule: Module<RacesState, RootState> = {
       const raceIndex = state.schedule.currentRound
       const race = state.schedule.races[raceIndex]
       if (race) {
-        // Initialize results array if not exists
         if (!race.results) {
           race.results = []
         }
 
-        // Add or update this horse in the results
         const existingIndex = race.results.findIndex((r) => r.horse.id === horse.id)
         const newResult = { position, horse, time: finishTime }
 
@@ -131,7 +126,6 @@ const racesModule: Module<RacesState, RootState> = {
       const races: Race[] = []
 
       for (let round = 0; round < 6; round++) {
-        // Get 10 random horses for this race
         const raceHorses = rootGetters['horses/getRandomHorses'](10)
 
         const race: Race = {
@@ -172,26 +166,21 @@ const racesModule: Module<RacesState, RootState> = {
         let lastFrameTime = startTime
         const finishedHorses = new Set()
         const horseConfigs = new Map()
-        const lastPositions = new Map() // Track last position to prevent going backwards
+        const lastPositions = new Map()
         let firstHorseFinished = false
         let finishPosition = 1
         const randomizeSpeedInterval = 200
         const horseVariations = new Map<number, number>()
         let lastRandomizationTime = startTime
 
-        // Configure each horse's racing parameters ONCE
         race.horses.forEach((horse) => {
-          // Distance factor: Longer races need more speed to finish in reasonable time
-          const distanceFactor = raceDistance / 1000 // Normalize to 1km baseline
+          const distanceFactor = raceDistance / 1000
 
-          // Calculate target race duration (15-30 seconds depending on distance) - FASTER RACES
-          const targetDuration = 15 + distanceFactor * 15 // 15s for 1km, 30s for 2km
+          const targetDuration = 15 + distanceFactor * 15
 
-          // Calculate required speed to finish in target duration
           const requiredSpeed = raceDistance / targetDuration
 
-          // Apply horse's condition to required speed - MINIMAL IMPACT
-          const adjustedSpeed = requiredSpeed * (1 + (horse.condition / 100) * 0.1) // Only up to 10% bonus
+          const adjustedSpeed = requiredSpeed * (1 + (horse.condition / 100) * 0.1)
 
           horseConfigs.set(horse.id, {
             speed: adjustedSpeed,

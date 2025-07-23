@@ -90,7 +90,6 @@ const emit = defineEmits(['close'])
   background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
 }
 
-/* Update ResultModal.vue */
 @media (min-width: 768px) {
   .modal-content {
     width: 800px;

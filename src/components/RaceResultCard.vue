@@ -44,7 +44,6 @@ function getMedal(position: number) {
   </details>
 </template>
 <style scoped>
-/* Add your styles here, or copy from your previous implementation */
 .race-result-card {
   background: #fafbfc;
   border: 1px solid #e1e8ed;
