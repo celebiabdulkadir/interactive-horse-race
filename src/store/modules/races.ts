@@ -268,8 +268,6 @@ const racesModule: Module<RacesState, RootState> = {
               const finishTime = (elapsed - config.startDelay) / 1000
               finishedHorses.add(horse.id)
 
-              console.log(`🏁 ${horse.name} finished in position ${finishPosition}!`)
-
               // Add to results immediately
               commit('ADD_HORSE_TO_RESULTS', {
                 horse,
@@ -281,7 +279,6 @@ const racesModule: Module<RacesState, RootState> = {
               if (!firstHorseFinished) {
                 firstHorseFinished = true
                 commit('FIRST_HORSE_FINISHED')
-                console.log('🎉 RESULTS SHOWING NOW!')
               }
 
               finishPosition++
@@ -293,7 +290,6 @@ const racesModule: Module<RacesState, RootState> = {
           })
 
           if (allFinished) {
-            console.log('🏆 All horses finished!')
             const currentRace = state.schedule.races[state.schedule.currentRound]
             const finalResults = currentRace?.results || []
             commit('FINISH_RACE', finalResults)
@@ -339,7 +335,6 @@ const racesModule: Module<RacesState, RootState> = {
     isShowingResults: (state) => {
       const currentRace = state.schedule.races[state.schedule.currentRound]
       const showing = currentRace?.showingResults || false
-      console.log('🔍 isShowingResults:', showing)
       return showing
     },
 
@@ -353,7 +348,6 @@ const racesModule: Module<RacesState, RootState> = {
     currentRaceResults: (state) => {
       const currentRace = state.schedule.races[state.schedule.currentRound]
       const results = currentRace?.results || []
-      console.log('🔍 currentRaceResults:', results.length)
       return results
     },
 

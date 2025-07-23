@@ -4,13 +4,11 @@ import RaceResultCard from './RaceResultCard.vue'
 const props = defineProps<{
   showResultModal: boolean
   results: RaceResult[]
-  distance: number
-  roundNumber: number
+  distance?: number
+  roundNumber?: number
 }>()
 
 const emit = defineEmits(['close'])
-
-console.log(props.results)
 </script>
 
 <template>
@@ -90,5 +88,25 @@ console.log(props.results)
 
 .modal-content button:hover {
   background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+/* Update ResultModal.vue */
+@media (min-width: 768px) {
+  .modal-content {
+    width: 800px;
+    max-width: 90vw;
+    min-height: 500px;
+    padding: 40px;
+    font-size: 1.1em;
+  }
+}
+
+@media (max-width: 767px) {
+  .modal-content {
+    width: 95vw;
+    height: 60vh;
+    padding: 20px;
+    overflow-y: auto;
+  }
 }
 </style>

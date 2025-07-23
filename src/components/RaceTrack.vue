@@ -87,7 +87,6 @@ function playStartSound() {
 }
 
 function playFinishSound() {
-  debugger
   const audio = new Audio('/end.mp3')
   audio.play()
 }
@@ -224,7 +223,7 @@ watch(currentRaceStatus, () => {
 .race-info h2 {
   margin: 0 0 5px 0;
   color: #2c3e50;
-  font-size: 1.5em;
+  font-size: 1em;
 }
 
 .race-status .status {
@@ -275,7 +274,7 @@ watch(currentRaceStatus, () => {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .btn-race {
@@ -511,6 +510,62 @@ watch(currentRaceStatus, () => {
   .track-container {
     /* Smaller screens get less space */
     height: 50vh !important;
+  }
+  .horse {
+    transform: scale(0.7); /* Make horses smaller on mobile */
+  }
+
+  /* FIXED: Make sure running animation also scales down on mobile */
+  .horse.running {
+    animation: gallop-mobile 1s ease-in-out infinite;
+  }
+
+  /* Also fix the finished animation for mobile */
+  .horse.finished {
+    animation: celebrate-mobile 1s ease-out;
+  }
+
+  .horse-name {
+    font-size: 10px;
+    padding: 2px 4px;
+  }
+  .lane-number {
+    width: 18px;
+    height: 18px;
+    font-size: 9px;
+  }
+
+  /* Reduce track header size on mobile */
+  .track-header {
+    padding: 4px;
+    margin-bottom: 5px;
+  }
+
+  .race-info h2 {
+    font-size: 0.9em;
+  }
+}
+
+/* Mobile-specific animations that maintain the scale */
+@keyframes gallop-mobile {
+  0%,
+  100% {
+    transform: translateZ(0) scale(0.7);
+  }
+  50% {
+    transform: translateZ(0) scale(0.75) translateY(-2px);
+  }
+}
+
+@keyframes celebrate-mobile {
+  0% {
+    transform: translateZ(0) scale(0.7);
+  }
+  50% {
+    transform: translateZ(0) scale(0.85) rotate(10deg);
+  }
+  100% {
+    transform: translateZ(0) scale(0.7) rotate(0deg);
   }
 }
 

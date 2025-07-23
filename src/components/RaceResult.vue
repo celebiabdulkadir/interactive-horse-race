@@ -13,19 +13,16 @@ const isRacing = computed(() => store.getters['races/isRacing'])
 // FIXED: Force reactive updates
 const isShowingResults = computed(() => {
   const result = store.getters['races/isShowingResults']
-  console.log('🔄 isShowingResults computed:', result)
   return result
 })
 
 const liveResults = computed(() => {
   const results = store.getters['races/currentRaceResults']
-  console.log('🔄 liveResults computed:', results.length)
   return results
 })
 
 const shouldShowLiveResults = computed(() => {
   const should = isShowingResults.value && liveResults.value.length > 0
-  console.log('🔄 shouldShowLiveResults:', should)
   return should
 })
 

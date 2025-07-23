@@ -144,7 +144,7 @@ body {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .btn-primary {
@@ -239,10 +239,20 @@ body {
     grid-template-columns: 1fr;
     grid-template-rows: auto auto 1fr auto;
     grid-template-areas:
-      'horses'
-      'schedule'
-      'main'
-      'results';
+      'main' /* Race track first - most important */
+      'schedule' /* Schedule second */
+      'horses' /* Horses third */
+      'results'; /* Results last */
+  }
+
+  .sidebar {
+    height: auto;
+    max-height: 200px;
+  }
+
+  /* Make race track take more space on mobile */
+  .main-content {
+    min-height: 50vh;
   }
 
   .sidebar {
