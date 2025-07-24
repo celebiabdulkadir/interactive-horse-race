@@ -49,6 +49,7 @@ onUnmounted(() => {
 
 const generateHorses = () => {
   store.dispatch('horses/generateHorses')
+  store.dispatch('races/resetAll')
 }
 
 const generateSchedule = () => {

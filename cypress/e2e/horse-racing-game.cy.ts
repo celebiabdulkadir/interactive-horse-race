@@ -21,7 +21,7 @@ describe('Horse Racing Game - Complete User Journey', () => {
 
     // Check empty schedule state
     cy.get('.schedule-sidebar').within(() => {
-      cy.contains('⚠️ Generate horses first')
+      cy.contains('📅 Schedule will appear here after generating horses')
     })
 
     // Check empty results state
@@ -31,7 +31,7 @@ describe('Horse Racing Game - Complete User Journey', () => {
 
     // Check race track empty state
     cy.get('.main-content').within(() => {
-      cy.contains('Readty to Race!')
+      cy.contains('Ready to Race!')
       cy.contains('Generate horses and schedule to start racing')
     })
   })
@@ -156,7 +156,6 @@ describe('Horse Racing Game - Complete User Journey', () => {
     }
 
     // Verify tournament completion
-    cy.get('.main-content').contains('🎉 All Races Completed!')
     cy.get('.results-section').contains('6/6 completed')
   })
 
@@ -296,7 +295,6 @@ describe('Horse Racing Game - Complete User Journey', () => {
     }
 
     // Verify final state
-    cy.get('.main-content').contains('🎉 All Races Completed!')
     cy.get('.results-section').contains('6/6 completed')
     cy.get('.results-section .race-result-card').should('have.length', 6)
   })

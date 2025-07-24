@@ -47,7 +47,7 @@ const getTrackHeight = () => {
           :key="horse.id"
           class="lane"
           :style="{
-            '--horse-progress': Math.min(95, (horse.position / currentRace.distance) * 95),
+            '--horse-progress': Math.min(100, (horse.position / currentRace.distance) * 100),
             '--horse-color': horse.color,
             '--lane-height': laneHeightPx + 'px',
           }"
@@ -62,7 +62,7 @@ const getTrackHeight = () => {
             class="horse"
             :class="{ running: isRacing && currentRace.status === 'running' }"
             :style="{
-              left: `calc(${Math.min(95, (horse.position / currentRace.distance) * 95)}%)`,
+              left: `calc(${Math.min(100, (horse.position / currentRace.distance) * 100)}%)`,
             }"
           >
             <HorseRace :horse="horse.color" />

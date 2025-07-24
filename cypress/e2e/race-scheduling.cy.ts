@@ -14,7 +14,7 @@ describe('Race Scheduling & Management', () => {
     })
 
     // Schedule sidebar should show warning
-    cy.get('.schedule-sidebar').contains('⚠️ Generate horses first')
+    cy.get('.schedule-sidebar').contains('📅 Schedule will appear here after generating horses')
   })
 
   it('should create 6 races with correct distances', () => {
@@ -173,7 +173,7 @@ describe('Race Scheduling & Management', () => {
   it('should prevent race start when no schedule exists', () => {
     // Don't generate schedule
     cy.get('.main-content').within(() => {
-      cy.contains('Readty to Race!')
+      cy.contains('Ready to Race!')
       cy.should('not.contain', 'Start Race')
     })
   })

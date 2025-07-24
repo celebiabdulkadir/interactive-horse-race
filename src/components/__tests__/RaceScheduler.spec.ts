@@ -33,7 +33,7 @@ describe('RaceScheduler.vue', () => {
         plugins: [store],
       },
     })
-    expect(wrapper.text()).toContain('⚠️ Generate horses first')
+    expect(wrapper.text()).toContain('📅 Schedule will appear here after generating horses')
     expect(wrapper.findAll('.schedule-item').length).toBe(0)
   })
 

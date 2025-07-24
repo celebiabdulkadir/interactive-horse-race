@@ -84,6 +84,7 @@ watch(currentRaceStatus, () => {
 
       <div class="controls">
         <button
+          v-if="currentRace"
           @click="startRace"
           class="btn btn-race"
           :disabled="!canStartRace || countdownActive"
@@ -106,7 +107,7 @@ watch(currentRaceStatus, () => {
     <div v-if="!currentRace" class="no-race">
       <div class="empty-state">
         <div class="empty-icon">🏁</div>
-        <h3 v-if="!isScheduleGenerated">Readty to Race!</h3>
+        <h3 v-if="!isScheduleGenerated">Ready to Race!</h3>
         <h3 v-else-if="isAllRacesFinished">🎉 All Races Completed!</h3>
         <h3 v-else>Select a Race</h3>
         <p v-if="!isScheduleGenerated">Generate horses and schedule to start racing</p>

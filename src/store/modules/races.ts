@@ -254,13 +254,20 @@ const racesModule: Module<RacesState, RootState> = {
 
             // Check if horse just finished
             // Account for horse visual size - finish when horse body crosses the line, not just head
-            const horseVisualOffset = raceDistance * 0.02 // 2% of race distance for horse visual size
+            const horseVisualOffset = raceDistance * 0.05 // 5% of race distance for horse visual size
             if (
               finalPosition >= raceDistance - horseVisualOffset &&
               !finishedHorses.has(horse.id)
             ) {
               const finishTime = (elapsed - config.startDelay) / 1000
               finishedHorses.add(horse.id)
+
+              // Set horse position to exactly raceDistance for visual alignment
+              dispatch(
+                'horses/updateHorsePosition',
+                { horseId: horse.id, position: raceDistance },
+                { root: true },
+              )
 
               // Add to results immediately
               commit('ADD_HORSE_TO_RESULTS', {
@@ -355,10 +362,10 @@ const racesModule: Module<RacesState, RootState> = {
     },
 
     isAllRacesFinished: (state) => {
-      return (
-        state.schedule.currentRound === state.schedule.totalRounds - 1 &&
-        state.schedule.races[state.schedule.currentRound]?.status === 'finished'
-      )
+      // Check if we have races and if the last race is finished
+      const lastRaceIndex = state.schedule.totalRounds - 1
+      const lastRace = state.schedule.races[lastRaceIndex]
+      return lastRace && lastRace.status === 'finished'
     },
   },
 }
