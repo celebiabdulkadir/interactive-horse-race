@@ -14,12 +14,16 @@ const emit = defineEmits(['close'])
 <template>
   <div v-if="props.showResultModal" class="modal-overlay">
     <div class="modal-content">
-      <RaceResultCard
-        :results="props.results"
-        :distance="props.distance"
-        :roundNumber="props.roundNumber"
-      />
-      <button @click="emit('close')">Close</button>
+      <div class="modal-body">
+        <RaceResultCard
+          :results="props.results"
+          :distance="props.distance"
+          :roundNumber="props.roundNumber"
+        />
+      </div>
+      <div class="modal-footer">
+        <button @click="emit('close')">Close</button>
+      </div>
     </div>
   </div>
 </template>
@@ -48,6 +52,8 @@ const emit = defineEmits(['close'])
   max-height: 80vh;
   overflow-y: auto;
   text-align: center;
+  display: flex;
+  flex-direction: column;
 }
 
 .modal-content h2 {
@@ -74,7 +80,6 @@ const emit = defineEmits(['close'])
 }
 
 .modal-content button {
-  margin-top: 12px;
   padding: 8px 24px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: #fff;
@@ -88,6 +93,18 @@ const emit = defineEmits(['close'])
 
 .modal-content button:hover {
   background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 16px;
+}
+
+.modal-footer {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid #eee;
 }
 
 @media (min-width: 768px) {
