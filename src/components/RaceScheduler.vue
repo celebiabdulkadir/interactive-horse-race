@@ -20,7 +20,7 @@ const totalRounds = computed(() => store.getters['races/totalRounds'])
     </div>
 
     <div v-if="!horses.length" class="warning">
-      <small>⚠️ Generate horses first</small>
+      📅 Schedule will appear here after generating horses
     </div>
 
     <RaceScheduleList v-else-if="horses.length > 0 && races.length > 0" />
@@ -29,7 +29,7 @@ const totalRounds = computed(() => store.getters['races/totalRounds'])
       <div class="empty-state">
         <div class="empty-icon">🏁</div>
         <p>No schedule</p>
-        <small>Generate schedule to start racing</small>
+        Generate schedule to start racing
       </div>
     </div>
   </div>
@@ -37,17 +37,17 @@ const totalRounds = computed(() => store.getters['races/totalRounds'])
 
 <style scoped>
 .race-scheduler {
-  margin: 15px;
+  margin: 10px;
   height: 100%;
   overflow-y: auto;
+  background: #fff;
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
-  padding-bottom: 8px;
+  padding: 10px;
   border-bottom: 1px solid #e1e8ed;
   position: sticky;
   top: 0;
@@ -72,13 +72,14 @@ const totalRounds = computed(() => store.getters['races/totalRounds'])
 }
 
 .warning {
-  background: #fff3cd;
-  color: #856404;
-  padding: 8px;
-  border-radius: 4px;
-  border: 1px solid #ffeaa7;
-  text-align: center;
-  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 100px;
+  color: #7f8c8d;
+  font-size: 14px;
+  padding: 10px;
 }
 
 .color-dot {

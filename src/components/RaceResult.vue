@@ -72,13 +72,17 @@ const getRaceDistance = (raceIndex: number): number => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  padding-bottom: 5px;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
 }
 
 .results-header h3 {
   margin: 0;
   color: #2c3e50;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
 }
 
@@ -100,6 +104,7 @@ const getRaceDistance = (raceIndex: number): number => {
 .results-grid {
   flex: 1;
   display: flex;
+  flex-direction: column;
   gap: 12px;
   overflow-y: auto;
 }

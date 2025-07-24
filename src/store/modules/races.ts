@@ -176,7 +176,7 @@ const racesModule: Module<RacesState, RootState> = {
         race.horses.forEach((horse) => {
           const distanceFactor = raceDistance / 1000
 
-          const targetDuration = 15 + distanceFactor * 15
+          const targetDuration = 5 + distanceFactor * 5
 
           const requiredSpeed = raceDistance / targetDuration
 
@@ -253,7 +253,12 @@ const racesModule: Module<RacesState, RootState> = {
             )
 
             // Check if horse just finished
-            if (finalPosition >= raceDistance && !finishedHorses.has(horse.id)) {
+            // Account for horse visual size - finish when horse body crosses the line, not just head
+            const horseVisualOffset = raceDistance * 0.02 // 2% of race distance for horse visual size
+            if (
+              finalPosition >= raceDistance - horseVisualOffset &&
+              !finishedHorses.has(horse.id)
+            ) {
               const finishTime = (elapsed - config.startDelay) / 1000
               finishedHorses.add(horse.id)
 
@@ -273,7 +278,7 @@ const racesModule: Module<RacesState, RootState> = {
               finishPosition++
             }
 
-            if (finalPosition < raceDistance) {
+            if (finalPosition < raceDistance - horseVisualOffset) {
               allFinished = false
             }
           })

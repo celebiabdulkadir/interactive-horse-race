@@ -52,9 +52,12 @@ const horses = computed(() => store.getters['horses/getAllHorses'])
 }
 
 .header {
-  margin-bottom: 20px;
   padding-bottom: 10px;
   border-bottom: 2px solid #e1e8ed;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
 }
 
 .header h3 {

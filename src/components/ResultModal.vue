@@ -14,6 +14,9 @@ const emit = defineEmits(['close'])
 <template>
   <div v-if="props.showResultModal" class="modal-overlay">
     <div class="modal-content">
+      <div class="modal-header">
+        <h2>Race Results</h2>
+      </div>
       <div class="modal-body">
         <RaceResultCard
           :results="props.results"
@@ -54,6 +57,14 @@ const emit = defineEmits(['close'])
   text-align: center;
   display: flex;
   flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
 }
 
 .modal-content h2 {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch, onUnmounted } from 'vue'
+import { computed, watch, onUnmounted, ref, onMounted } from 'vue'
 import { useStore } from 'vuex'
 import HorseGenerator from './components/HorseGenerator.vue'
 import RaceScheduler from './components/RaceScheduler.vue'
@@ -11,11 +11,26 @@ const store = useStore()
 const horses = computed(() => store.getters['horses/getAllHorses'])
 const isRacing = computed(() => store.getters['races/isRacing'])
 
+// Responsive window width tracking
+const windowWidth = ref(window.innerWidth)
+const isMobile = computed(() => windowWidth.value < 968)
+
+// Tab system for mobile
+const activeTab = ref('horses')
+
+const handleResize = () => {
+  windowWidth.value = window.innerWidth
+}
+
 const handleBeforeUnload = (event: BeforeUnloadEvent) => {
   if (isRacing.value) {
     event.preventDefault()
   }
 }
+
+onMounted(() => {
+  window.addEventListener('resize', handleResize)
+})
 
 watch(isRacing, (racing) => {
   if (racing) {
@@ -29,6 +44,7 @@ watch(isRacing, (racing) => {
 
 onUnmounted(() => {
   window.removeEventListener('beforeunload', handleBeforeUnload)
+  window.removeEventListener('resize', handleResize)
 })
 
 const generateHorses = () => {
@@ -68,7 +84,8 @@ const generateSchedule = () => {
     </header>
 
     <main class="dashboard">
-      <aside class="sidebar horses-sidebar">
+      <!-- Desktop Layout -->
+      <aside class="sidebar horses-sidebar" v-if="!isMobile">
         <HorseGenerator />
       </aside>
 
@@ -76,7 +93,7 @@ const generateSchedule = () => {
         <RaceTrack />
       </section>
 
-      <aside class="right-sidebar">
+      <aside class="right-sidebar" v-if="!isMobile">
         <div class="schedule-sidebar">
           <RaceScheduler />
         </div>
@@ -84,6 +101,42 @@ const generateSchedule = () => {
           <RaceResult />
         </section>
       </aside>
+
+      <!-- Mobile Tab Layout -->
+      <div v-if="isMobile" class="mobile-tabs">
+        <div class="tab-navigation">
+          <button
+            @click="activeTab = 'horses'"
+            :class="['tab-button', { active: activeTab === 'horses' }]"
+          >
+            🐎 Horses
+          </button>
+          <button
+            @click="activeTab = 'schedule'"
+            :class="['tab-button', { active: activeTab === 'schedule' }]"
+          >
+            📅 Schedule
+          </button>
+          <button
+            @click="activeTab = 'results'"
+            :class="['tab-button', { active: activeTab === 'results' }]"
+          >
+            🏆 Results
+          </button>
+        </div>
+
+        <div class="tab-content">
+          <div v-if="activeTab === 'horses'" class="tab-panel">
+            <HorseGenerator />
+          </div>
+          <div v-if="activeTab === 'schedule'" class="tab-panel">
+            <RaceScheduler />
+          </div>
+          <div v-if="activeTab === 'results'" class="tab-panel">
+            <RaceResult />
+          </div>
+        </div>
+      </div>
     </main>
   </div>
 </template>
@@ -166,7 +219,7 @@ body {
 .dashboard {
   flex: 1;
   display: grid;
-  grid-template-columns: 1fr 3fr 1fr;
+  grid-template-columns: 0.7fr 2.3fr 2fr;
   grid-template-rows: 1fr;
   grid-template-areas: 'horses main right-sidebar';
   gap: 0;
@@ -192,7 +245,7 @@ body {
   border-right: none;
   min-width: 200px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   overflow: hidden;
 }
 
@@ -231,48 +284,14 @@ body {
 @media (max-width: 968px) {
   .dashboard {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto 1fr auto;
+    grid-template-rows: 1fr auto;
     grid-template-areas:
       'main'
-      'right-sidebar'
-      'horses';
-  }
-
-  .right-sidebar {
-    flex-direction: row;
-    border-left: none;
-    border-bottom: 1px solid #e1e8ed;
-    height: auto;
-    min-height: 200px;
-  }
-
-  .schedule-sidebar {
-    flex: 1;
-    border-bottom: none;
-    border-right: 1px solid #e1e8ed;
-    min-height: 200px;
-  }
-
-  .results-section {
-    flex: 1;
-    min-height: 200px;
-  }
-
-  .sidebar {
-    height: auto;
-    max-height: 200px;
+      'mobile-tabs';
   }
 
   .main-content {
-    min-height: 50vh;
-  }
-
-  .horses-sidebar {
-    border-right: none;
-    border-bottom: 1px solid #e1e8ed;
-    height: 12vh;
-    min-height: 100px;
-    max-height: 180px;
+    min-height: 60vh;
   }
 
   .app-header {
@@ -283,21 +302,76 @@ body {
   .app-header h1 {
     font-size: 1.5em;
   }
-}
 
-@media (max-width: 768px) {
-  .right-sidebar {
+  /* Mobile Tab Styles */
+  .mobile-tabs {
+    grid-area: mobile-tabs;
+    background: white;
+    border-top: 1px solid #e1e8ed;
+    height: 40vh;
+    display: flex;
     flex-direction: column;
   }
 
-  .schedule-sidebar {
-    border-right: none;
+  .tab-navigation {
+    display: flex;
+    background: #f8f9fa;
     border-bottom: 1px solid #e1e8ed;
-    min-height: 150px;
   }
 
-  .results-section {
-    min-height: 150px;
+  .tab-button {
+    flex: 1;
+    padding: 12px 16px;
+    border: none;
+    background: transparent;
+    color: #6c757d;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-bottom: 3px solid transparent;
+  }
+
+  .tab-button:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: #495057;
+  }
+
+  .tab-button.active {
+    color: #667eea;
+    background: white;
+    border-bottom-color: #667eea;
+  }
+
+  .tab-content {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .tab-panel {
+    height: 100%;
+    padding: 0;
+  }
+
+  /* Hide desktop layout on mobile */
+  .sidebar,
+  .right-sidebar {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .mobile-tabs {
+    height: 35vh;
+  }
+
+  .tab-button {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .main-content {
+    min-height: 55vh;
   }
 }
 
