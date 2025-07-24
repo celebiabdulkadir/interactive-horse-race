@@ -264,7 +264,7 @@ describe('Horse Racing Game - Complete User Journey', () => {
     cy.get('.header-controls').contains('Generate Horses').click()
 
     // Results should be cleared
-    cy.get('.results-section').contains('Race results will appear here')
+    cy.get('.results-section').contains('Race results will appear here after completing races')
 
     // Regenerate schedule
     cy.get('.header-controls').contains('Generate Schedule').click()

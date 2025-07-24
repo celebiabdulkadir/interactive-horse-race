@@ -101,7 +101,6 @@ const getRaceDistance = (raceIndex: number): number => {
   flex: 1;
   display: flex;
   gap: 12px;
-  max-height: 240px;
   overflow-y: auto;
 }
 
