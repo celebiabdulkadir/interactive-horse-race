@@ -109,9 +109,8 @@ const emit = defineEmits(['close'])
 
 @media (min-width: 768px) {
   .modal-content {
-    width: 800px;
+    width: 500px;
     max-width: 90vw;
-    min-height: 500px;
     padding: 40px;
     font-size: 1.1em;
   }
@@ -120,7 +119,6 @@ const emit = defineEmits(['close'])
 @media (max-width: 767px) {
   .modal-content {
     width: 95vw;
-    height: 60vh;
     padding: 20px;
     overflow-y: auto;
   }
