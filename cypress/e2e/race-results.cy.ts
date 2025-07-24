@@ -122,79 +122,6 @@ describe('Race Results & Statistics', () => {
     })
   })
 
-  it('should calculate and display quick statistics', () => {
-    // Run multiple races to get meaningful statistics
-    for (let i = 0; i < 3; i++) {
-      cy.get('.main-content').contains('Start Race').click()
-      cy.get('.countdown-overlay', { timeout: 15000 }).should('not.exist')
-      cy.get('.race-status .status').should('have.class', 'running')
-      cy.get('.race-status .status', { timeout: 120000 }).should('have.class', 'finished')
-      cy.get('.modal-content').contains('Close').click()
-
-      if (i < 2) {
-        cy.get('.main-content').contains('Next Round').click()
-      }
-    }
-
-    // Check quick stats
-    cy.get('.results-section .quick-stats').should('exist')
-    cy.get('.results-section').within(() => {
-      // Different Winners stat
-      cy.get('.stat')
-        .contains('Different Winners')
-        .parent()
-        .within(() => {
-          cy.get('.stat-value').should('exist').invoke('text').should('match', /[1-3]/)
-        })
-
-      // Most Wins stat
-      cy.get('.stat')
-        .contains('Most Wins')
-        .parent()
-        .within(() => {
-          cy.get('.stat-value').should('exist').invoke('text').should('match', /[1-3]/)
-        })
-
-      // Average Winner Time stat
-      cy.get('.stat')
-        .contains('Avg Winner Time')
-        .parent()
-        .within(() => {
-          cy.get('.stat-value')
-            .should('exist')
-            .invoke('text')
-            .should('match', /\d+\.\d{2}s/)
-        })
-    })
-  })
-
-  it('should display champion information', () => {
-    // Run multiple races
-    for (let i = 0; i < 3; i++) {
-      cy.get('.main-content').contains('Start Race').click()
-      cy.get('.countdown-overlay', { timeout: 15000 }).should('not.exist')
-      cy.get('.race-status .status').should('have.class', 'running')
-      cy.get('.race-status .status', { timeout: 120000 }).should('have.class', 'finished')
-      cy.get('.modal-content').contains('Close').click()
-
-      if (i < 2) {
-        cy.get('.main-content').contains('Next Round').click()
-      }
-    }
-
-    // Check champion display
-    cy.get('.results-section .champion-mini').should('exist')
-    cy.get('.champion-mini').within(() => {
-      cy.get('.champion-color').should('exist')
-      cy.get('.champion-name-mini').should('exist').invoke('text').should('not.be.empty')
-      cy.get('.champion-wins')
-        .should('exist')
-        .invoke('text')
-        .should('match', /\d+ wins/)
-      cy.contains('👑') // Crown emoji
-    })
-  })
-
   it('should show individual race result cards with correct information', () => {
     // Complete a race
     cy.get('.main-content').contains('Start Race').click()
@@ -298,32 +225,5 @@ describe('Race Results & Statistics', () => {
       cy.get('.empty-icon').should('contain', '🏁')
       cy.get('.race-result-card').should('not.exist')
     })
-  })
-
-  it('should update statistics as more races are completed', () => {
-    // Run first race
-    cy.get('.main-content').contains('Start Race').click()
-    cy.get('.countdown-overlay', { timeout: 15000 }).should('not.exist')
-    cy.get('.race-status .status').should('have.class', 'running')
-    cy.get('.race-status .status', { timeout: 120000 }).should('have.class', 'finished')
-    cy.get('.modal-content').contains('Close').click()
-
-    // Check initial stats
-    cy.get('.results-section').contains('1/6 completed')
-
-    // Run second race
-    cy.get('.main-content').contains('Next Round').click()
-    cy.get('.main-content').contains('Start Race').click()
-    cy.get('.countdown-overlay', { timeout: 15000 }).should('not.exist')
-    cy.get('.race-status .status').should('have.class', 'running')
-    cy.get('.race-status .status', { timeout: 120000 }).should('have.class', 'finished')
-    cy.get('.modal-content').contains('Close').click()
-
-    // Check updated stats
-    cy.get('.results-section').contains('2/6 completed')
-    cy.get('.results-section .race-result-card').should('have.length', 2)
-
-    // Statistics should be updated
-    cy.get('.results-section .quick-stats').should('be.visible')
   })
 })

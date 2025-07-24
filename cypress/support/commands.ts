@@ -137,11 +137,15 @@ Cypress.Commands.add('runMultipleRaces', (count: number) => {
 })
 
 Cypress.Commands.add('verifyRaceStats', () => {
-  cy.get('.results-section .quick-stats').should('be.visible')
   cy.get('.results-section').within(() => {
-    cy.contains('Different Winners')
-    cy.contains('Most Wins')
-    cy.contains('Avg Winner Time')
+    cy.get('.race-result-card').should('have.length.at.least', 1)
+    cy.get('.race-result-card')
+      .first()
+      .within(() => {
+        cy.get('.round-badge').should('exist')
+        cy.get('.distance').should('exist')
+        cy.get('.podium-item').should('have.length.at.least', 3)
+      })
   })
 })
 

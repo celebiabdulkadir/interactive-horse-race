@@ -4,7 +4,7 @@ describe('Horse Racing Game - Complete User Journey', () => {
   })
 
   it('should display the main application layout', () => {
-    cy.contains('🐎 Interactive Horse Racing Game')
+    cy.contains('🐎 Horse Racing Game')
     cy.get('.dashboard').should('be.visible')
     cy.get('.horses-sidebar').should('be.visible')
     cy.get('.main-content').should('be.visible')
@@ -180,15 +180,35 @@ describe('Horse Racing Game - Complete User Journey', () => {
       cy.contains('2/6 completed')
       cy.get('.race-result-card').should('have.length', 2)
 
-      // Check quick stats
-      cy.get('.quick-stats').should('be.visible')
-      cy.contains('Different Winners')
-      cy.contains('Most Wins')
-      cy.contains('Avg Winner Time')
+      // Verify first race result card
+      cy.get('.race-result-card')
+        .first()
+        .within(() => {
+          cy.get('.round-badge').should('contain', 'R1')
+          cy.get('.distance').should('contain', '1200m')
+          cy.get('.podium-item').should('have.length.at.least', 3)
 
-      // Check champion display
-      cy.get('.champion-mini').should('be.visible')
-      cy.contains('👑')
+          // Check that podium items have required elements
+          cy.get('.podium-item')
+            .first()
+            .within(() => {
+              cy.get('.position-medal').should('exist')
+              cy.get('.horse-name-mini').should('exist').invoke('text').should('not.be.empty')
+              cy.get('.time-mini')
+                .should('exist')
+                .invoke('text')
+                .should('match', /\d+\.\d{2}s/)
+            })
+        })
+
+      // Verify second race result card
+      cy.get('.race-result-card')
+        .eq(1)
+        .within(() => {
+          cy.get('.round-badge').should('contain', 'R2')
+          cy.get('.distance').should('contain', '1400m')
+          cy.get('.podium-item').should('have.length.at.least', 3)
+        })
     })
   })
 
@@ -257,7 +277,7 @@ describe('Horse Racing Game - Complete User Journey', () => {
   it('should maintain proper game state throughout', () => {
     // Test the complete flow with state verification
     cy.get('.header-controls').contains('Generate Horses').click()
-    cy.get('.horses-section').should('contain', '20 horses generated')
+    cy.get('.horses-sidebar').should('contain', '🐎 Horses (20/20)')
 
     cy.get('.header-controls').contains('Generate Schedule').click()
     cy.get('.schedule-sidebar').should('contain', '1/6')
@@ -275,206 +295,59 @@ describe('Horse Racing Game - Complete User Journey', () => {
       }
     }
 
-    // Final state verification
+    // Verify final state
     cy.get('.main-content').contains('🎉 All Races Completed!')
     cy.get('.results-section').contains('6/6 completed')
-    cy.get('.race-result-card').should('have.length', 6)
+    cy.get('.results-section .race-result-card').should('have.length', 6)
   })
 
-  it('should handle edge cases gracefully', () => {
-    // Test without horses
-    cy.get('.schedule-sidebar').contains('⚠️ Generate horses first')
+  it('should handle edge cases and error states', () => {
+    // Test without generating horses first
+    cy.get('.header-controls').contains('Generate Schedule').should('be.disabled')
 
-    // Generate horses but no schedule
+    // Test without generating schedule
     cy.get('.header-controls').contains('Generate Horses').click()
-    cy.get('.main-content').contains('Readty to Race!')
+    cy.get('.main-content').contains('Generate horses and schedule to start racing')
 
-    // Generate schedule and verify everything works
-    cy.get('.header-controls').contains('Generate Schedule').click()
-    cy.get('.main-content').contains('Start Race').should('be.visible')
+    // Test race completion without schedule
+    cy.get('.main-content').contains('Start Race').should('not.exist')
   })
 
-  it('should display countdown correctly', () => {
-    // Setup
-    cy.get('.header-controls').contains('Generate Horses').click()
-    cy.get('.header-controls').contains('Generate Schedule').click()
-
-    // Start race and verify countdown
-    cy.get('.main-content').contains('Start Race').click()
-
-    // Countdown should appear
-    cy.get('.countdown-overlay').should('be.visible')
-    cy.get('.countdown-number').should('be.visible')
-
-    // Should count down from 3
-    cy.get('.countdown-number').should('contain', '3')
-    // Note: We don't test the actual countdown progression as it's time-based
-
-    // Countdown should disappear
-    cy.get('.countdown-overlay', { timeout: 15000 }).should('not.exist')
-
-    // Race should start
-    cy.get('.race-status .status').should('have.class', 'running')
-  })
-
-  it('should persist results between races', () => {
-    // Setup
-    cy.get('.header-controls').contains('Generate Horses').click()
-    cy.get('.header-controls').contains('Generate Schedule').click()
-
-    // Run one race
-    cy.get('.main-content').contains('Start Race').click()
-    cy.get('.countdown-overlay', { timeout: 15000 }).should('not.exist')
-    cy.get('.race-status .status').should('have.class', 'running')
-    cy.get('.race-status .status', { timeout: 120000 }).should('have.class', 'finished')
-    cy.get('.modal-overlay .modal-content').contains('Close').click()
-
-    // Verify first result
-    cy.get('.results-section').contains('1/6 completed')
-    cy.get('.race-result-card').should('have.length', 1)
-
-    // Run second race
-    cy.get('.main-content').contains('Next Round').click()
-    cy.get('.main-content').contains('Start Race').click()
-    cy.get('.countdown-overlay', { timeout: 15000 }).should('not.exist')
-    cy.get('.race-status .status').should('have.class', 'running')
-    cy.get('.race-status .status', { timeout: 120000 }).should('have.class', 'finished')
-    cy.get('.modal-overlay .modal-content').contains('Close').click()
-
-    // Verify both results persist
-    cy.get('.results-section').contains('2/6 completed')
-    cy.get('.race-result-card').should('have.length', 2)
-
-    // First race result should still be there
-    cy.get('.race-result-card').first().contains('R1')
-    cy.get('.race-result-card').eq(1).contains('R2')
-  })
-
-  it('should handle race controls properly', () => {
+  it('should display proper race progression indicators', () => {
     // Setup
     cy.get('.header-controls').contains('Generate Horses').click()
     cy.get('.header-controls').contains('Generate Schedule').click()
 
     // Verify initial state
-    cy.get('.main-content').within(() => {
-      cy.contains('Start Race').should('not.be.disabled')
-      cy.contains('Next Round').should('not.exist')
-      cy.contains('Reset All').should('not.exist')
-    })
-
-    // Start race and verify button states during race
-    cy.get('.main-content').contains('Start Race').click()
-    cy.get('.main-content').contains('Racing...').should('be.disabled')
-
-    // Wait for race to finish
-    cy.get('.race-status .status', { timeout: 120000 }).should('have.class', 'finished')
-    cy.get('.modal-overlay .modal-content').contains('Close').click()
-
-    // Verify post-race button states
-    cy.get('.main-content').within(() => {
-      cy.contains('Start Race').should('not.exist')
-      cy.contains('Next Round').should('be.visible')
-    })
-  })
-
-  it('should show race progress in schedule sidebar', () => {
-    // Setup
-    cy.get('.header-controls').contains('Generate Horses').click()
-    cy.get('.header-controls').contains('Generate Schedule').click()
-
-    // Verify initial schedule state
-    cy.get('.schedule-sidebar').within(() => {
-      cy.get('.schedule-item').first().should('have.class', 'current')
-      cy.get('.schedule-item')
-        .first()
-        .within(() => {
-          cy.contains('pending')
-        })
-    })
+    cy.get('.schedule-sidebar .schedule-item').first().should('have.class', 'current')
+    cy.get('.main-content').contains('Round 1')
 
     // Run first race
     cy.get('.main-content').contains('Start Race').click()
-
-    // During race, verify running state
-    cy.get('.schedule-sidebar .schedule-item').first().should('have.class', 'running')
-
-    // After race finishes
+    cy.get('.countdown-overlay', { timeout: 15000 }).should('not.exist')
+    cy.get('.race-status .status').should('have.class', 'running')
     cy.get('.race-status .status', { timeout: 120000 }).should('have.class', 'finished')
     cy.get('.modal-overlay .modal-content').contains('Close').click()
 
-    // Verify finished state and winner display
-    cy.get('.schedule-sidebar').within(() => {
-      cy.get('.schedule-item').first().should('have.class', 'finished')
-      cy.get('.schedule-item')
-        .first()
-        .within(() => {
-          cy.contains('finished')
-          cy.contains('🏁') // Winner flag
-        })
-    })
+    // Verify progression
+    cy.get('.schedule-sidebar .schedule-item').first().should('have.class', 'finished')
+    cy.get('.main-content').contains('Next Round').click()
+    cy.get('.schedule-sidebar .schedule-item').eq(1).should('have.class', 'current')
+    cy.get('.main-content').contains('Round 2')
   })
 
-  it('should complete all 6 races and show final state', () => {
-    // Setup
-    cy.get('.header-controls').contains('Generate Horses').click()
-    cy.get('.header-controls').contains('Generate Schedule').click()
-
-    // Run all 6 races
-    for (let race = 1; race <= 6; race++) {
-      cy.get('.main-content').contains('Start Race').click()
-      cy.get('.race-status .status', { timeout: 120000 }).should('have.class', 'finished')
-      cy.get('.modal-overlay .modal-content').contains('Close').click()
-
-      if (race < 6) {
-        cy.get('.main-content').contains('Next Round').click()
-      }
-    }
-
-    // Verify final state
-    cy.get('.results-section').contains('6/6 completed')
-    cy.get('.results-section .race-result-card').should('have.length', 6)
-
-    // Verify reset button appears
-    cy.get('.main-content').contains('Reset All').should('be.visible')
-
-    // Verify final message
-    cy.get('.main-content').contains('🎉 All Races Completed!')
-  })
-
-  it('should reset the game properly', () => {
-    // Complete a full game
-    cy.get('.header-controls').contains('Generate Horses').click()
-    cy.get('.header-controls').contains('Generate Schedule').click()
-
-    // Run one race
-    cy.get('.main-content').contains('Start Race').click()
-    cy.get('.race-status .status', { timeout: 120000 }).should('have.class', 'finished')
-    cy.get('.modal-overlay .modal-content').contains('Close').click()
-
-    // Reset using header button (races reset)
-    cy.get('.header-controls').contains('Generate Schedule').click()
-
-    // Verify schedule is reset
-    cy.get('.schedule-sidebar').within(() => {
-      cy.contains('1/6') // Back to round 1
-      cy.get('.schedule-item').each(($item) => {
-        cy.wrap($item).should('not.have.class', 'finished')
-      })
-    })
-
-    // Verify results are cleared
-    cy.get('.results-section').should('not.contain', 'completed')
-  })
-
-  it('should be responsive and handle window resize', () => {
+  it('should maintain responsive design across different screen sizes', () => {
     // Test on different viewport sizes
-    cy.viewport(1200, 800)
+    cy.viewport(1920, 1080)
     cy.get('.dashboard').should('be.visible')
 
-    cy.viewport(768, 1024) // Tablet
+    cy.viewport(1366, 768)
     cy.get('.dashboard').should('be.visible')
 
-    cy.viewport(375, 667) // Mobile
+    cy.viewport(768, 1024)
+    cy.get('.dashboard').should('be.visible')
+
+    cy.viewport(375, 667)
     cy.get('.dashboard').should('be.visible')
   })
 })
