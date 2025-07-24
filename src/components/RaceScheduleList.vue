@@ -317,4 +317,23 @@ const currentRound = computed(() => store.getters['races/currentRound'])
 .horses-grid::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
+.race-time {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+}
+
+.time {
+  background: #27ae60;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 600;
+  font-size: 9px;
+}
+
+.time-label {
+  color: #7f8c8d;
+}
 </style>

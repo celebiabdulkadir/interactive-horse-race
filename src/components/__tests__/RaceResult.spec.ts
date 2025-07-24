@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { shallowMount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import RaceResult from '../RaceResult.vue'
 import { createStore } from 'vuex'
 import type { Horse, RaceResult as RaceResultType, Race } from '../../store/types'
@@ -30,7 +30,7 @@ function makeStore(
 describe('RaceResult.vue', () => {
   it('shows empty state when no results', () => {
     const store = makeStore([])
-    const wrapper = shallowMount(RaceResult, {
+    const wrapper = mount(RaceResult, {
       global: {
         plugins: [store],
       },
@@ -69,7 +69,7 @@ describe('RaceResult.vue', () => {
     ]
 
     const store = makeStore(results)
-    const wrapper = shallowMount(RaceResult, {
+    const wrapper = mount(RaceResult, {
       global: {
         plugins: [store],
       },
@@ -79,7 +79,81 @@ describe('RaceResult.vue', () => {
     expect(wrapper.text()).toContain('2/6 completed')
   })
 
-  it('calculates and displays quick stats correctly', () => {
+  it('displays race result cards with correct information', () => {
+    const horse1: Horse = {
+      id: 1,
+      name: 'Thunder Bolt',
+      color: '#ff0000',
+      condition: 85,
+      position: 0,
+      speed: 1,
+    }
+    const horse2: Horse = {
+      id: 2,
+      name: 'Lightning Flash',
+      color: '#00ff00',
+      condition: 92,
+      position: 0,
+      speed: 1,
+    }
+
+    const results: RaceResultType[][] = [
+      [
+        { position: 1, horse: horse1, time: 10.5 },
+        { position: 2, horse: horse2, time: 11.2 },
+      ],
+    ]
+
+    const store = makeStore(results)
+    const wrapper = mount(RaceResult, {
+      global: {
+        plugins: [store],
+      },
+    })
+
+    // Check that race result cards are rendered
+    expect(wrapper.findAll('.race-result-card').length).toBe(1)
+
+    // Check that horse names are displayed
+    expect(wrapper.text()).toContain('Thunder Bolt')
+    expect(wrapper.text()).toContain('Lightning Flash')
+
+    // Check that times are displayed
+    expect(wrapper.text()).toContain('10.50s')
+    expect(wrapper.text()).toContain('11.20s')
+
+    // Check that round information is displayed
+    expect(wrapper.text()).toContain('R1')
+  })
+
+  it('shows correct results count', () => {
+    const horse1: Horse = {
+      id: 1,
+      name: 'Thunder Bolt',
+      color: '#ff0000',
+      condition: 85,
+      position: 0,
+      speed: 1,
+    }
+
+    const results: RaceResultType[][] = [
+      [{ position: 1, horse: horse1, time: 10.0 }],
+      [{ position: 1, horse: horse1, time: 11.0 }],
+      [{ position: 1, horse: horse1, time: 12.0 }],
+    ]
+
+    const store = makeStore(results)
+    const wrapper = mount(RaceResult, {
+      global: {
+        plugins: [store],
+      },
+    })
+
+    expect(wrapper.text()).toContain('3/6 completed')
+    expect(wrapper.findAll('.race-result-card').length).toBe(3)
+  })
+
+  it('displays podium positions with medals', () => {
     const horse1: Horse = {
       id: 1,
       name: 'Thunder Bolt',
@@ -109,140 +183,36 @@ describe('RaceResult.vue', () => {
       [
         { position: 1, horse: horse1, time: 10.0 },
         { position: 2, horse: horse2, time: 11.0 },
-      ],
-      [
-        { position: 1, horse: horse1, time: 12.0 },
-        { position: 2, horse: horse3, time: 13.0 },
-      ],
-      [
-        { position: 1, horse: horse2, time: 14.0 },
-        { position: 2, horse: horse1, time: 15.0 },
+        { position: 3, horse: horse3, time: 12.0 },
       ],
     ]
 
     const store = makeStore(results)
-    const wrapper = shallowMount(RaceResult, {
+    const wrapper = mount(RaceResult, {
       global: {
         plugins: [store],
       },
     })
 
-    // Different winners: horse1, horse1, horse2 = 2 different winners
-    expect(wrapper.text()).toContain('2') // Different Winners
-
-    // Most wins: horse1 has 2 wins
-    expect(wrapper.text()).toContain('2') // Most Wins
-
-    // Average time: (10.0 + 12.0 + 14.0) / 3 = 12.00
-    expect(wrapper.text()).toContain('12.00s') // Avg Winner Time
+    // Check that medals are displayed
+    expect(wrapper.text()).toContain('🥇')
+    expect(wrapper.text()).toContain('🥈')
+    expect(wrapper.text()).toContain('🥉')
   })
 
-  it('displays champion information when available', () => {
-    const horse1: Horse = {
-      id: 1,
-      name: 'Thunder Bolt',
-      color: '#ff0000',
-      condition: 85,
-      position: 0,
-      speed: 1,
-    }
-    const horse2: Horse = {
-      id: 2,
-      name: 'Lightning Flash',
-      color: '#00ff00',
-      condition: 92,
-      position: 0,
-      speed: 1,
-    }
-
+  it('handles empty results array', () => {
     const results: RaceResultType[][] = [
-      [
-        { position: 1, horse: horse1, time: 10.0 },
-        { position: 2, horse: horse2, time: 11.0 },
-      ],
-      [
-        { position: 1, horse: horse1, time: 12.0 },
-        { position: 2, horse: horse2, time: 13.0 },
-      ],
+      [], // Empty results array
     ]
 
     const store = makeStore(results)
-    const wrapper = shallowMount(RaceResult, {
-      global: {
-        plugins: [store],
-      },
-    })
-
-    expect(wrapper.text()).toContain('Thunder Bolt') // Champion name
-    expect(wrapper.text()).toContain('2 wins') // Champion wins
-    expect(wrapper.text()).toContain('👑') // Crown emoji
-  })
-
-  it('handles single race result correctly', () => {
-    const horse1: Horse = {
-      id: 1,
-      name: 'Thunder Bolt',
-      color: '#ff0000',
-      condition: 85,
-      position: 0,
-      speed: 1,
-    }
-
-    const results: RaceResultType[][] = [[{ position: 1, horse: horse1, time: 10.5 }]]
-
-    const store = makeStore(results)
-    const wrapper = shallowMount(RaceResult, {
+    const wrapper = mount(RaceResult, {
       global: {
         plugins: [store],
       },
     })
 
     expect(wrapper.text()).toContain('1/6 completed')
-    expect(wrapper.text()).toContain('1') // Different Winners
-    expect(wrapper.text()).toContain('1') // Most Wins
-    expect(wrapper.text()).toContain('10.50s') // Avg Winner Time
-  })
-
-  it('shows correct results count', () => {
-    const horse1: Horse = {
-      id: 1,
-      name: 'Thunder Bolt',
-      color: '#ff0000',
-      condition: 85,
-      position: 0,
-      speed: 1,
-    }
-
-    const results: RaceResultType[][] = [
-      [{ position: 1, horse: horse1, time: 10.0 }],
-      [{ position: 1, horse: horse1, time: 11.0 }],
-      [{ position: 1, horse: horse1, time: 12.0 }],
-    ]
-
-    const store = makeStore(results)
-    const wrapper = shallowMount(RaceResult, {
-      global: {
-        plugins: [store],
-      },
-    })
-
-    expect(wrapper.text()).toContain('3/6 completed')
-    expect(wrapper.findAll('.race-result-card').length).toBe(3)
-  })
-
-  it('handles edge case with no winner times', () => {
-    const results: RaceResultType[][] = [
-      [], // Empty results array
-    ]
-
-    const store = makeStore(results)
-    const wrapper = shallowMount(RaceResult, {
-      global: {
-        plugins: [store],
-      },
-    })
-
-    expect(wrapper.text()).toContain('0.00s') // Should show 0.00 for average time
-    expect(wrapper.text()).toContain('0') // Different Winners should be 0
+    expect(wrapper.findAll('.race-result-card').length).toBe(1)
   })
 })

@@ -94,26 +94,6 @@ const totalRounds = computed(() => store.getters['races/totalRounds'])
   margin-left: 2px;
 }
 
-.race-time {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 10px;
-}
-
-.time {
-  background: #27ae60;
-  color: white;
-  padding: 2px 6px;
-  border-radius: 3px;
-  font-weight: 600;
-  font-size: 9px;
-}
-
-.time-label {
-  color: #7f8c8d;
-}
-
 .no-schedule {
   display: flex;
   align-items: center;

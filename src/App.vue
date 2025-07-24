@@ -47,7 +47,7 @@ const generateSchedule = () => {
 <template>
   <div id="app">
     <header class="app-header">
-      <h3>🐎 Interactive Horse Racing Game</h3>
+      <h3>🐎Horse Racing Game</h3>
       <div class="header-controls">
         <button @click="generateHorses" class="btn btn-primary" :disabled="isRacing">
           Generate Horses
@@ -76,13 +76,14 @@ const generateSchedule = () => {
         <RaceTrack />
       </section>
 
-      <aside class="sidebar schedule-sidebar">
-        <RaceScheduler />
+      <aside class="right-sidebar">
+        <div class="schedule-sidebar">
+          <RaceScheduler />
+        </div>
+        <section class="results-section">
+          <RaceResult />
+        </section>
       </aside>
-
-      <section class="results-section">
-        <RaceResult />
-      </section>
     </main>
   </div>
 </template>
@@ -166,10 +167,8 @@ body {
   flex: 1;
   display: grid;
   grid-template-columns: 1fr 3fr 1fr;
-  grid-template-rows: 1fr auto;
-  grid-template-areas:
-    'horses main schedule'
-    'results results results';
+  grid-template-rows: 1fr;
+  grid-template-areas: 'horses main right-sidebar';
   gap: 0;
   height: calc(100vh - 70px);
   overflow: hidden;
@@ -187,11 +186,21 @@ body {
   min-width: 180px;
 }
 
-.schedule-sidebar {
-  grid-area: schedule;
+.right-sidebar {
+  grid-area: right-sidebar;
   border-left: 1px solid #e1e8ed;
   border-right: none;
-  min-width: 160px;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.schedule-sidebar {
+  flex: 1;
+  border-bottom: 1px solid #e1e8ed;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .main-content {
@@ -201,13 +210,10 @@ body {
 }
 
 .results-section {
-  grid-area: results;
+  flex: 1;
   background: white;
-  border-top: 1px solid #e1e8ed;
-  height: 15vh;
-  min-height: 150px;
-  max-height: 250px;
   overflow-y: auto;
+  min-height: 0;
 }
 
 @media (max-width: 1400px) {
@@ -228,9 +234,28 @@ body {
     grid-template-rows: auto auto 1fr auto;
     grid-template-areas:
       'main'
-      'schedule'
-      'horses'
-      'results';
+      'right-sidebar'
+      'horses';
+  }
+
+  .right-sidebar {
+    flex-direction: row;
+    border-left: none;
+    border-bottom: 1px solid #e1e8ed;
+    height: auto;
+    min-height: 200px;
+  }
+
+  .schedule-sidebar {
+    flex: 1;
+    border-bottom: none;
+    border-right: 1px solid #e1e8ed;
+    min-height: 200px;
+  }
+
+  .results-section {
+    flex: 1;
+    min-height: 200px;
   }
 
   .sidebar {
@@ -242,17 +267,12 @@ body {
     min-height: 50vh;
   }
 
-  .sidebar {
+  .horses-sidebar {
     border-right: none;
     border-bottom: 1px solid #e1e8ed;
     height: 12vh;
     min-height: 100px;
     max-height: 180px;
-  }
-
-  .results-section {
-    height: 20vh;
-    min-height: 120px;
   }
 
   .app-header {
@@ -262,6 +282,22 @@ body {
 
   .app-header h1 {
     font-size: 1.5em;
+  }
+}
+
+@media (max-width: 768px) {
+  .right-sidebar {
+    flex-direction: column;
+  }
+
+  .schedule-sidebar {
+    border-right: none;
+    border-bottom: 1px solid #e1e8ed;
+    min-height: 150px;
+  }
+
+  .results-section {
+    min-height: 150px;
   }
 }
 

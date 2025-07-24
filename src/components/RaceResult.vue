@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useStore } from 'vuex'
-import { RACE_DISTANCES, type Horse, type RaceResult } from '../store/types'
+import { RACE_DISTANCES } from '../store/types'
 import RaceResultCard from './RaceResultCard.vue'
 const store = useStore()
 
@@ -33,50 +33,6 @@ const currentRaceResults = computed(() => {
 const getRaceDistance = (raceIndex: number): number => {
   return RACE_DISTANCES[raceIndex] || 0
 }
-
-const getWinningHorses = () => {
-  const winners = allResults.value.map((results: RaceResult[]) => results[0]?.horse).filter(Boolean)
-  return [...new Set(winners.map((horse: Horse) => horse.id))].map((id) =>
-    winners.find((horse: Horse) => horse.id === id),
-  )
-}
-
-const getMostSuccessfulHorse = () => {
-  if (allResults.value.length === 0) return null
-
-  const horseWins: { [key: number]: { horse: Horse; wins: number } } = {}
-
-  allResults.value.forEach((results: RaceResult[]) => {
-    const winner = results[0]?.horse
-    if (winner) {
-      if (!horseWins[winner.id]) {
-        horseWins[winner.id] = { horse: winner, wins: 0 }
-      }
-      horseWins[winner.id].wins++
-    }
-  })
-
-  return Object.values(horseWins).reduce(
-    (best: { horse: Horse; wins: number } | null, current: { horse: Horse; wins: number }) =>
-      current.wins > (best?.wins || 0) ? current : best,
-    null,
-  )
-}
-
-const getAverageTime = (): string => {
-  if (allResults.value.length === 0) return '0.00'
-
-  const winnerTimes = allResults.value
-    .map((results: RaceResult[]) => results[0]?.time)
-    .filter(Boolean)
-
-  if (winnerTimes.length === 0) return '0.00'
-
-  const average =
-    winnerTimes.reduce((sum: number, time: number) => sum + time, 0) / winnerTimes.length
-
-  return average.toFixed(2)
-}
 </script>
 <template>
   <div class="race-results">
@@ -95,32 +51,6 @@ const getAverageTime = (): string => {
             :roundNumber="raceIndex + 1"
             :distance="getRaceDistance(raceIndex)"
           />
-        </div>
-      </div>
-
-      <div class="quick-stats">
-        <div class="stat">
-          <span class="stat-value">{{ getWinningHorses().length }}</span>
-          <span class="stat-label">Different Winners</span>
-        </div>
-        <div class="stat">
-          <span class="stat-value">{{ getMostSuccessfulHorse()?.wins || 0 }}</span>
-          <span class="stat-label">Most Wins</span>
-        </div>
-        <div class="stat">
-          <span class="stat-value">{{ getAverageTime() }}s</span>
-          <span class="stat-label">Avg Winner Time</span>
-        </div>
-        <div v-if="getMostSuccessfulHorse()" class="champion-mini">
-          <div
-            class="champion-color"
-            :style="{ backgroundColor: getMostSuccessfulHorse()?.horse.color }"
-          ></div>
-          <div class="champion-info-mini">
-            <div class="champion-name-mini">{{ getMostSuccessfulHorse()?.horse.name }}</div>
-            <div class="champion-wins">{{ getMostSuccessfulHorse()?.wins }} wins</div>
-          </div>
-          <div class="champion-crown">👑</div>
         </div>
       </div>
     </div>
@@ -169,8 +99,7 @@ const getAverageTime = (): string => {
 
 .results-grid {
   flex: 1;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  display: flex;
   gap: 12px;
   max-height: 240px;
   overflow-y: auto;
@@ -253,76 +182,6 @@ const getAverageTime = (): string => {
   font-size: 10px;
   color: #e74c3c;
   font-weight: 600;
-}
-
-.quick-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  min-width: 200px;
-}
-
-.stat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 8px;
-  background: #f8f9fa;
-  border-radius: 6px;
-  border: 1px solid #e1e8ed;
-}
-
-.stat-value {
-  font-size: 18px;
-  font-weight: 700;
-  color: #3498db;
-}
-
-.stat-label {
-  font-size: 10px;
-  color: #7f8c8d;
-  text-transform: uppercase;
-  font-weight: 600;
-}
-
-.champion-mini {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px;
-  background: linear-gradient(135deg, #f39c12, #e67e22);
-  border-radius: 8px;
-  color: white;
-}
-
-.champion-color {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 2px solid white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.champion-info-mini {
-  flex: 1;
-  min-width: 0;
-}
-
-.champion-name-mini {
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.champion-wins {
-  font-size: 10px;
-  opacity: 0.9;
-}
-
-.champion-crown {
-  font-size: 16px;
 }
 
 .no-results {
