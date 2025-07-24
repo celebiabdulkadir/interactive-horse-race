@@ -3,6 +3,9 @@
 A fun and interactive horse racing game built with **Typescript**, **Vue 3**, **Vite**, and **Vuex**.  
 Manage horses, schedule races, and watch the action unfold with real-time animations and results!
 
+<img width="1440" height="773" alt="image" src="https://github.com/user-attachments/assets/b87c31e3-6985-4e0d-9bac-ed54b772d6d9" />
+
+
 ---
 
 ## Features
