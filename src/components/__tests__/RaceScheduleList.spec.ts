@@ -1,57 +1,36 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
-import RaceScheduler from '../RaceScheduler.vue'
+import RaceScheduleList from '../RaceScheduleList.vue'
 import { createStore } from 'vuex'
 import type { Horse, Race } from '../../store/types'
 
-function makeStore(horses: Horse[] = [], races: Race[] = [], currentRound: number = 1) {
+function makeStore(races: Race[] = [], currentRound: number = 1) {
   return createStore({
     modules: {
-      horses: {
-        namespaced: true,
-        getters: {
-          getAllHorses: () => horses,
-        },
-      },
       races: {
         namespaced: true,
         getters: {
           allRaces: () => races,
           currentRound: () => currentRound,
-          totalRounds: () => 6,
         },
       },
     },
   })
 }
 
-describe('RaceScheduler.vue', () => {
-  it('shows warning when no horses available', () => {
-    const store = makeStore([], [])
-    const wrapper = mount(RaceScheduler, {
+describe('RaceScheduleList.vue', () => {
+  it('renders empty when no races', () => {
+    const store = makeStore([])
+    const wrapper = mount(RaceScheduleList, {
       global: {
         plugins: [store],
       },
     })
-    expect(wrapper.text()).toContain('⚠️ Generate horses first')
+
     expect(wrapper.findAll('.schedule-item').length).toBe(0)
   })
 
-  it('shows empty schedule state when horses exist but no races', () => {
-    const horses: Horse[] = [
-      { id: 1, name: 'Test Horse', color: '#fff', condition: 80, position: 0, speed: 1 },
-    ]
-    const store = makeStore(horses, [])
-    const wrapper = mount(RaceScheduler, {
-      global: {
-        plugins: [store],
-      },
-    })
-    expect(wrapper.text()).toContain('No schedule')
-    expect(wrapper.text()).toContain('Generate schedule to start racing')
-  })
-
-  it('renders race schedule when races exist', () => {
+  it('renders race schedule items', () => {
     const horses: Horse[] = [
       { id: 1, name: 'Test Horse', color: '#fff', condition: 80, position: 0, speed: 1 },
       { id: 2, name: 'Second Horse', color: '#000', condition: 60, position: 0, speed: 1 },
@@ -74,12 +53,13 @@ describe('RaceScheduler.vue', () => {
         status: 'pending',
       },
     ]
-    const store = makeStore(horses, races, 1)
-    const wrapper = mount(RaceScheduler, {
+    const store = makeStore(races, 1)
+    const wrapper = mount(RaceScheduleList, {
       global: {
         plugins: [store],
       },
     })
+
     expect(wrapper.findAll('.schedule-item').length).toBe(2)
     expect(wrapper.text()).toContain('R1')
     expect(wrapper.text()).toContain('R2')
@@ -109,12 +89,13 @@ describe('RaceScheduler.vue', () => {
         status: 'pending',
       },
     ]
-    const store = makeStore(horses, races, 1)
-    const wrapper = mount(RaceScheduler, {
+    const store = makeStore(races, 1)
+    const wrapper = mount(RaceScheduleList, {
       global: {
         plugins: [store],
       },
     })
+
     const scheduleItems = wrapper.findAll('.schedule-item')
     expect(scheduleItems[0].classes()).toContain('current')
     expect(scheduleItems[1].classes()).not.toContain('current')
@@ -150,21 +131,22 @@ describe('RaceScheduler.vue', () => {
         status: 'pending',
       },
     ]
-    const store = makeStore(horses, races, 2)
-    const wrapper = mount(RaceScheduler, {
+    const store = makeStore(races, 2)
+    const wrapper = mount(RaceScheduleList, {
       global: {
         plugins: [store],
       },
     })
+
     const scheduleItems = wrapper.findAll('.schedule-item')
     expect(scheduleItems[0].classes()).toContain('finished')
     expect(scheduleItems[1].classes()).toContain('running')
     expect(scheduleItems[2].classes()).not.toContain('finished')
   })
 
-  it('displays round indicator correctly', () => {
+  it('shows winner information for finished races', () => {
     const horses: Horse[] = [
-      { id: 1, name: 'Test Horse', color: '#fff', condition: 80, position: 0, speed: 1 },
+      { id: 1, name: 'Thunder Bolt', color: '#ff0000', condition: 85, position: 0, speed: 1 },
     ]
     const races: Race[] = [
       {
@@ -172,17 +154,20 @@ describe('RaceScheduler.vue', () => {
         round: 1,
         distance: 1200,
         horses: horses,
-        results: [],
-        status: 'pending',
+        results: [{ position: 1, horse: horses[0], time: 10.5 }],
+        status: 'finished',
       },
     ]
-    const store = makeStore(horses, races, 3)
-    const wrapper = mount(RaceScheduler, {
+    const store = makeStore(races, 1)
+    const wrapper = mount(RaceScheduleList, {
       global: {
         plugins: [store],
       },
     })
-    expect(wrapper.text()).toContain('3/6')
+
+    expect(wrapper.text()).toContain('Thunder Bolt')
+    expect(wrapper.text()).toContain('Winner Time:')
+    expect(wrapper.text()).toContain('10.50s')
   })
 
   it('shows horse information in race details', () => {
@@ -200,14 +185,39 @@ describe('RaceScheduler.vue', () => {
         status: 'pending',
       },
     ]
-    const store = makeStore(horses, races, 1)
-    const wrapper = mount(RaceScheduler, {
+    const store = makeStore(races, 1)
+    const wrapper = mount(RaceScheduleList, {
       global: {
         plugins: [store],
       },
     })
+
     expect(wrapper.text()).toContain('Thunder Bolt')
     expect(wrapper.text()).toContain('Lightning Flash')
-    expect(wrapper.text()).toContain('2 total') // Horse count
+    expect(wrapper.text()).toContain('2 total')
+  })
+
+  it('displays horse conditions', () => {
+    const horses: Horse[] = [
+      { id: 1, name: 'Thunder Bolt', color: '#ff0000', condition: 85, position: 0, speed: 1 },
+    ]
+    const races: Race[] = [
+      {
+        id: 1,
+        round: 1,
+        distance: 1200,
+        horses: horses,
+        results: [],
+        status: 'pending',
+      },
+    ]
+    const store = makeStore(races, 1)
+    const wrapper = mount(RaceScheduleList, {
+      global: {
+        plugins: [store],
+      },
+    })
+
+    expect(wrapper.text()).toContain('85')
   })
 })

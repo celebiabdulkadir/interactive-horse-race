@@ -23,9 +23,9 @@ const totalRounds = computed(() => store.getters['races/totalRounds'])
       <small>⚠️ Generate horses first</small>
     </div>
 
-    <RaceScheduleList v-else-if="horses.length > 0" />
+    <RaceScheduleList v-else-if="horses.length > 0 && races.length > 0" />
 
-    <div v-else class="no-schedule">
+    <div v-else-if="horses.length > 0 && races.length === 0" class="no-schedule">
       <div class="empty-state">
         <div class="empty-icon">🏁</div>
         <p>No schedule</p>

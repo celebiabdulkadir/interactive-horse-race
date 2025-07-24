@@ -101,7 +101,7 @@ watch(currentRaceStatus, () => {
 
     <Countdown :countdown="countdown" :countdownActive="countdownActive" />
 
-    <HorseListItems />
+    <HorseListItems v-if="currentRace" />
 
     <div v-if="!currentRace" class="no-race">
       <div class="empty-state">

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { shallowMount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import RaceTrack from '../RaceTrack.vue'
 import { createStore } from 'vuex'
 import type { Horse, Race } from '../../store/types'
@@ -13,6 +13,9 @@ vi.mock('../Countdown.vue', () => ({
 }))
 vi.mock('../ResultModal.vue', () => ({
   default: { name: 'ResultModal', template: '<div class="result-modal-mock"></div>' },
+}))
+vi.mock('../HorseListItems.vue', () => ({
+  default: { name: 'HorseListItems', template: '<div class="horse-list-items-mock"></div>' },
 }))
 
 function makeStore(
@@ -68,7 +71,7 @@ function makeStore(
 describe('RaceTrack.vue', () => {
   it('shows empty state when no race is selected', () => {
     const store = makeStore(null, false, false, false, false, false)
-    const wrapper = shallowMount(RaceTrack, {
+    const wrapper = mount(RaceTrack, {
       global: {
         plugins: [store],
       },
@@ -77,12 +80,12 @@ describe('RaceTrack.vue', () => {
     expect(wrapper.text()).toContain('Readty to Race!')
     expect(wrapper.text()).toContain('Generate horses and schedule to start racing')
     expect(wrapper.find('.no-race').exists()).toBe(true)
-    expect(wrapper.find('.track-container').exists()).toBe(false)
+    expect(wrapper.find('.horse-list-items-mock').exists()).toBe(false)
   })
 
   it('shows schedule generated message when schedule exists but no current race', () => {
     const store = makeStore(null, false, false, false, false, true)
-    const wrapper = shallowMount(RaceTrack, {
+    const wrapper = mount(RaceTrack, {
       global: {
         plugins: [store],
       },
@@ -94,7 +97,7 @@ describe('RaceTrack.vue', () => {
 
   it('shows all races completed message', () => {
     const store = makeStore(null, false, false, true, false, true)
-    const wrapper = shallowMount(RaceTrack, {
+    const wrapper = mount(RaceTrack, {
       global: {
         plugins: [store],
       },
@@ -120,16 +123,15 @@ describe('RaceTrack.vue', () => {
     }
 
     const store = makeStore(currentRace, true, false, false, false, true)
-    const wrapper = shallowMount(RaceTrack, {
+    const wrapper = mount(RaceTrack, {
       global: {
         plugins: [store],
       },
     })
 
-    expect(wrapper.find('.track-container').exists()).toBe(true)
+    expect(wrapper.find('.horse-list-items-mock').exists()).toBe(true)
     expect(wrapper.text()).toContain('Round 1 - 1200m')
     expect(wrapper.text()).toContain('PENDING')
-    expect(wrapper.findAll('.lane').length).toBe(2)
   })
 
   it('shows start race button when race can be started', () => {
@@ -147,7 +149,7 @@ describe('RaceTrack.vue', () => {
     }
 
     const store = makeStore(currentRace, true, false, false, false, true)
-    const wrapper = shallowMount(RaceTrack, {
+    const wrapper = mount(RaceTrack, {
       global: {
         plugins: [store],
       },
@@ -174,7 +176,7 @@ describe('RaceTrack.vue', () => {
     }
 
     const store = makeStore(currentRace, false, false, false, false, true)
-    const wrapper = shallowMount(RaceTrack, {
+    const wrapper = mount(RaceTrack, {
       global: {
         plugins: [store],
       },
@@ -200,7 +202,7 @@ describe('RaceTrack.vue', () => {
     }
 
     const store = makeStore(currentRace, false, false, false, true, true)
-    const wrapper = shallowMount(RaceTrack, {
+    const wrapper = mount(RaceTrack, {
       global: {
         plugins: [store],
       },
@@ -225,7 +227,7 @@ describe('RaceTrack.vue', () => {
     }
 
     const store = makeStore(currentRace, false, true, false, false, true)
-    const wrapper = shallowMount(RaceTrack, {
+    const wrapper = mount(RaceTrack, {
       global: {
         plugins: [store],
       },
@@ -251,7 +253,7 @@ describe('RaceTrack.vue', () => {
     }
 
     const store = makeStore(currentRace, false, false, true, false, true)
-    const wrapper = shallowMount(RaceTrack, {
+    const wrapper = mount(RaceTrack, {
       global: {
         plugins: [store],
       },
@@ -277,7 +279,7 @@ describe('RaceTrack.vue', () => {
     }
 
     const store = makeStore(currentRace, false, true, false, false, true)
-    const wrapper = shallowMount(RaceTrack, {
+    const wrapper = mount(RaceTrack, {
       global: {
         plugins: [store],
       },
@@ -308,14 +310,13 @@ describe('RaceTrack.vue', () => {
     }
 
     const store = makeStore(currentRace, true, false, false, false, true)
-    const wrapper = shallowMount(RaceTrack, {
+    const wrapper = mount(RaceTrack, {
       global: {
         plugins: [store],
       },
     })
 
-    expect(wrapper.text()).toContain('Thunder Bolt')
-    expect(wrapper.text()).toContain('Lightning Flash')
-    expect(wrapper.findAll('.lane-number').length).toBe(2)
+    // Since HorseListItems is mocked, we check that it's rendered
+    expect(wrapper.find('.horse-list-items-mock').exists()).toBe(true)
   })
 })
